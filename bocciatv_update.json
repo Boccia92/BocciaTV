@@ -1,5 +1,5 @@
 {
-  "versionCode": 5,
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.2/bocciatv.apk",
-  "releaseNotes": "- Rimozione VPN integrata (è possibile usare un'app VPN esterna sulla TV)\n- Ottimizzazioni di stabilità e fluidità"
+  "versionCode": 6,
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.3/bocciatv.apk",
+  "releaseNotes": "- Nuovo logo grafico dorato BocciaTV come sfondo Dashboard e icona della TV\n- Miglioramenti grafici ed estetici"
 }
