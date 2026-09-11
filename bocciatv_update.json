@@ -1,5 +1,5 @@
 {
-  "versionCode": 7,
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.4/bocciatv.apk",
-  "releaseNotes": "- Ottimizzazione grafica per Fire TV (compatibilità banner, icona e sfondo Dashboard)"
+  "versionCode": 8,
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.5/bocciatv.apk",
+  "releaseNotes": "- Guida TV / EPG integrata nei canali Live (programma in onda, orario, descrizione e programma a seguire)"
 }
