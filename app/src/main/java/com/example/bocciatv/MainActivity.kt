@@ -37,7 +37,10 @@ class MainActivity : FragmentActivity() {
         tvExp = findViewById(R.id.tv_exp)
         updateExpiryUI()
 
-        findViewById<Button>(R.id.btn_live).setOnClickListener { start(ContentActivity.TYPE_LIVE) }
+        val btnLive = findViewById<Button>(R.id.btn_live)
+        btnLive.setOnClickListener { start(ContentActivity.TYPE_LIVE) }
+        btnLive.requestFocus()
+
         findViewById<Button>(R.id.btn_vod).setOnClickListener { start(ContentActivity.TYPE_VOD) }
         findViewById<Button>(R.id.btn_series).setOnClickListener { start(ContentActivity.TYPE_SERIES) }
 
@@ -55,6 +58,11 @@ class MainActivity : FragmentActivity() {
 
         // Check for app updates on startup
         UpdateManager.checkForUpdates(this, isSilent = true)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        findViewById<Button>(R.id.btn_live)?.requestFocus()
     }
 
     private fun updateExpiryUI() {

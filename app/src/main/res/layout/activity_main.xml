@@ -99,7 +99,9 @@
             android:text="LIVE TV"
             android:drawableTop="@drawable/ic_live"
             android:drawablePadding="12dp"
-            android:paddingTop="24dp"/>
+            android:paddingTop="24dp">
+            <requestFocus />
+        </Button>
 
         <Button
             android:id="@+id/btn_vod"
