@@ -1,5 +1,5 @@
 {
-  "versionCode": 10,
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.7/bocciatv.apk",
-  "releaseNotes": "- Nuova funzionalità Speed Test Connessione integrata (misurazione Latenza Ping e velocità Mbps per lo streaming IPTV)"
+  "versionCode": 11,
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.8/bocciatv.apk",
+  "releaseNotes": "- Risolto errore di connessione nello Speed Test\n- Integrazione server CDN ad alte prestazioni e sistemi di fallback"
 }

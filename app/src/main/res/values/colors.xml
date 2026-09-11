@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Relaxing Palette -->
+    <color name="primary_dark">#10141d</color>
+    <color name="primary_light">#1c222d</color>
+    <color name="accent_yellow">#FFD600</color>
+    <color name="bg_black">#000000</color>
+
+    <color name="background_gradient_start">#10141d</color>
+    <color name="background_gradient_end">#080a0f</color>
+    <color name="fastlane_background">#10141d</color>
+    <color name="selected_background">#FFD600</color>
+    <color name="default_background">#10141d</color>
+    <color name="search_opaque">#ffaa3f</color>
+</resources>

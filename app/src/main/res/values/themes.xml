@@ -1,0 +1,15 @@
+<resources>
+
+    <style name="Theme.BocciaTV" parent="@style/Theme.Leanback" />
+
+    <style name="MenuButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/button_selector</item>
+        <item name="android:textColor">@color/white_to_black_selector</item>
+        <item name="android:drawableTint">@color/white_to_black_selector</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
+</resources>
