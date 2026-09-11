@@ -8,6 +8,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
+import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -96,6 +97,7 @@ class PlayerActivity : FragmentActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
 
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_player)
         prefs = PrefsManager(this)
 
