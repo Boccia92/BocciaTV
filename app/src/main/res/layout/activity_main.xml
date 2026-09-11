@@ -73,17 +73,6 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp"/>
 
-        <Button
-            android:id="@+id/btn_vpn"
-            style="@style/MenuButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginTop="8dp"
-            android:text="VPN"
-            android:textSize="12sp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"/>
-
     </LinearLayout>
 
     <!-- Central Menu -->
