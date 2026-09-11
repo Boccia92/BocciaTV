@@ -215,7 +215,7 @@ class ContentActivity : FragmentActivity() {
             }
             override fun onFailure(call: Call<List<Category>>, t: Throwable) {
                 runOnUiThread {
-                    Toast.makeText(this@ContentActivity, "Errore connessione server. Se la VPN è attiva, prova un altro Paese (es. Italia 🇮🇹)", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ContentActivity, "Errore connessione server IPTV", Toast.LENGTH_SHORT).show()
                 }
             }
         })
@@ -236,13 +236,13 @@ class ContentActivity : FragmentActivity() {
                     runOnUiThread { applyFilters() }
                 } else {
                     runOnUiThread {
-                        Toast.makeText(this@ContentActivity, "Server IPTV irraggiungibile con questa VPN. Seleziona Italia 🇮🇹 o disattiva la VPN.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@ContentActivity, "Server IPTV non disponibile", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
             override fun onFailure(call: Call<List<StreamItem>>, t: Throwable) {
                 runOnUiThread {
-                    Toast.makeText(this@ContentActivity, "Errore caricamento lista. Se hai la VPN attiva, seleziona Italia 🇮🇹 o cambia Paese.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ContentActivity, "Errore caricamento lista contenuti", Toast.LENGTH_SHORT).show()
                 }
             }
         })
