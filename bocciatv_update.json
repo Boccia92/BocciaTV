@@ -1,5 +1,5 @@
 {
-  "versionCode": 2,
+  "versionCode": 3,
   "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.0/bocciatv.apk",
   "releaseNotes": "- Nuova funzionalità VPN con selezione Nazionalità e Paese\n- Sistema di aggiornamento automatico in-app\n- Miglioramenti di stabilità e prestazioni"
 }
