@@ -1,5 +1,5 @@
 {
-  "versionCode": 3,
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.0/bocciatv.apk",
-  "releaseNotes": "- Priorità automatica server VPN Italia 🇮🇹\n- Gestione ottimizzata errori connessione IPTV\n- Sistema aggiornamenti automatici in-app"
+  "versionCode": 4,
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.1/bocciatv.apk",
+  "releaseNotes": "- Pre-selezione automatica Italia 🇮🇹 nel menu VPN\n- Priorità server ad alta velocità\n- Ottimizzazione stabilità e riproduzione canali"
 }
