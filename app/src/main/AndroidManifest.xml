@@ -53,6 +53,11 @@
             android:screenOrientation="landscape" />
 
         <activity
+            android:name=".ui.speedtest.SpeedTestActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
             android:name=".ui.player.PlayerActivity"
             android:exported="false"
             android:screenOrientation="landscape"
