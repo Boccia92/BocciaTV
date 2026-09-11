@@ -162,6 +162,7 @@ class ContentActivity : FragmentActivity() {
                 val intent = Intent(this, PlayerActivity::class.java).apply {
                     putExtra("url", streamUrl)
                     putExtra("id", id)
+                    putExtra("name", item.name)
                 }
                 startActivity(intent)
             }
