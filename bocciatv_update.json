@@ -1,5 +1,5 @@
 {
-  "versionCode": 8,
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.5/bocciatv.apk",
-  "releaseNotes": "- Guida TV / EPG integrata nei canali Live (programma in onda, orario, descrizione e programma a seguire)"
+  "versionCode": 9,
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.6/bocciatv.apk",
+  "releaseNotes": "- Risoluzione blocco standby/screensaver su Fire TV durante la visione dei canali, film e serie"
 }
