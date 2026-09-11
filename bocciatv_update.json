@@ -1,6 +1,6 @@
 {
-  "versionCode": 102,
-  "versionName": "3.2",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.2/bocciatv.apk",
-  "releaseNotes": "- Compatibilità universale garantita per Fire TV Stick, Fire OS, Google TV e Android Box/Smartphone\n- Aggiunto doppio launcher e disattivato il vincolo estretto Leanback"
+  "versionCode": 103,
+  "versionName": "3.3",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.3/bocciatv.apk",
+  "releaseNotes": "- Controllo e aggiornamento automatico della lista all'avvio dell'applicazione con notifica di conferma\n- Compatibilità Fire TV e Android TV"
 }

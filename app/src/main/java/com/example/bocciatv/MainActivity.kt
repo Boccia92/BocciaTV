@@ -54,8 +54,15 @@ class MainActivity : FragmentActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        // Silent refresh at startup to ensure date is correct
-        refreshAccountInfo()
+        // Automatic initial check/refresh on app startup
+        Toast.makeText(this, "Controllo e aggiornamento lista in corso...", Toast.LENGTH_SHORT).show()
+        refreshAccountInfo(onResult = { success ->
+            runOnUiThread {
+                if (success) {
+                    Toast.makeText(this@MainActivity, "Lista aggiornata!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
 
         // Check for app updates on startup
         UpdateManager.checkForUpdates(this, isSilent = true)
