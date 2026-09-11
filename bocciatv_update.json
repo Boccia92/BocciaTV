@@ -1,6 +1,6 @@
 {
-  "versionCode": 100,
-  "versionName": "3.0",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.0/bocciatv.apk",
-  "releaseNotes": "- Risolto errore di connessione nello Speed Test\n- Focus predefinito su Live TV\n- Migliorata la gestione degli aggiornamenti in-app"
+  "versionCode": 101,
+  "versionName": "3.1",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.1/bocciatv.apk",
+  "releaseNotes": "- Aggiunto popup con avviso durante l'aggiornamento lista e messaggio 'Lista aggiornata!' al completamento\n- Risolto errore Speed Test e focus automatico su Live TV"
 }

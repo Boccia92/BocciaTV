@@ -1,5 +1,7 @@
 package com.example.bocciatv
 
+import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -45,8 +47,7 @@ class MainActivity : FragmentActivity() {
         findViewById<Button>(R.id.btn_series).setOnClickListener { start(ContentActivity.TYPE_SERIES) }
 
         findViewById<Button>(R.id.btn_refresh).setOnClickListener {
-            Toast.makeText(this, "Aggiornamento in corso...", Toast.LENGTH_SHORT).show()
-            refreshAccountInfo()
+            showRefreshDialogAndExecute()
         }
 
         findViewById<Button>(R.id.btn_settings).setOnClickListener {
@@ -65,12 +66,36 @@ class MainActivity : FragmentActivity() {
         findViewById<Button>(R.id.btn_live)?.requestFocus()
     }
 
+    private fun showRefreshDialogAndExecute() {
+        @Suppress("DEPRECATION")
+        val progressDialog = ProgressDialog(this, android.R.style.Theme_DeviceDefault_Dialog_Alert).apply {
+            setTitle("Aggiornamento Lista")
+            setMessage("Aggiornamento della lista in corso...")
+            setCancelable(false)
+            show()
+        }
+
+        refreshAccountInfo(onResult = { success ->
+            runOnUiThread {
+                if (progressDialog.isShowing) {
+                    progressDialog.dismiss()
+                }
+                val msg = if (success) "Lista aggiornata!" else "Errore durante l'aggiornamento della lista."
+                AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                    .setTitle("Aggiornamento Lista")
+                    .setMessage(msg)
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
+        })
+    }
+
     private fun updateExpiryUI() {
         val exp = if (prefs.expDate.isEmpty()) "Verifica in corso..." else prefs.expDate
         tvExp.text = "Scadenza: $exp"
     }
 
-    private fun refreshAccountInfo() {
+    private fun refreshAccountInfo(onResult: ((Boolean) -> Unit)? = null) {
         NetworkModule.api.authenticate(prefs.user, prefs.pass).enqueue(object : Callback<UserAuth> {
             override fun onResponse(call: Call<UserAuth>, response: Response<UserAuth>) {
                 val auth = response.body()
@@ -79,10 +104,14 @@ class MainActivity : FragmentActivity() {
                     val formattedDate = formatExpiryDate(rawExp)
                     prefs.expDate = formattedDate
                     runOnUiThread { updateExpiryUI() }
+                    onResult?.invoke(true)
+                } else {
+                    onResult?.invoke(false)
                 }
             }
             override fun onFailure(call: Call<UserAuth>, t: Throwable) {
                 Log.e("BocciaTV", "Refresh Error: ${t.message}")
+                onResult?.invoke(false)
             }
         })
     }
