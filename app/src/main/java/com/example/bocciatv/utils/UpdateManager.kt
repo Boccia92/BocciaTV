@@ -5,7 +5,9 @@ import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.FileProvider
@@ -21,13 +23,20 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.util.concurrent.TimeUnit
 
 object UpdateManager {
 
     private const val UPDATE_URL = "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv_update.json"
     private const val USER_AGENT = "IPTVSmartersPro/3.0.0 (Linux; Android TV)"
     private const val TAG = "UpdateManager"
-    private val client = OkHttpClient()
+    
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .followRedirects(true)
+        .followSslRedirects(true)
+        .build()
 
     fun checkForUpdates(activity: FragmentActivity, isSilent: Boolean = true) {
         val urlWithTimestamp = "$UPDATE_URL?t=${System.currentTimeMillis()}"
@@ -175,6 +184,20 @@ object UpdateManager {
     private fun installApk(context: Context, apkFile: File) {
         if (!apkFile.exists()) return
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+            Toast.makeText(context, "Abilita l'autorizzazione 'Installa app sconosciute' per BocciaTV", Toast.LENGTH_LONG).show()
+            try {
+                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    data = Uri.parse("package:${context.packageName}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open install permissions settings: ${e.message}")
+            }
+            return
+        }
+
         val uri = FileProvider.getUriForFile(
             context,
             "${context.packageName}.fileprovider",
@@ -185,6 +208,7 @@ object UpdateManager {
             setDataAndType(uri, "application/vnd.android.package-archive")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
 
         try {
