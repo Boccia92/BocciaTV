@@ -4,6 +4,7 @@ import android.os.SystemClock
 import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import java.io.InputStream
 import java.util.concurrent.TimeUnit
 
@@ -11,11 +12,20 @@ object SpeedTestEngine {
 
     private const val TAG = "SpeedTestEngine"
     private const val PING_URL = "http://latteax.securitysc.shop/"
-    private const val TEST_FILE_URL = "https://raw.githubusercontent.com/Boccia92/BocciaTV/releases/download/v2.7/bocciatv.apk"
+
+    // Alternative reliable URLs for speed testing (Cloudflare CDN 10MB file, Hetzner, OVH, GitHub)
+    private val TEST_FILE_URLS = listOf(
+        "https://speed.cloudflare.com/__down?bytes=10000000",
+        "https://speed.hetzner.de/10MB.bin",
+        "https://proof.ovh.net/files/10Mb.dat",
+        "https://github.com/Boccia92/BocciaTV/releases/download/v2.7/bocciatv.apk"
+    )
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
+        .followRedirects(true)
+        .followSslRedirects(true)
         .build()
 
     data class SpeedResult(
@@ -33,35 +43,60 @@ object SpeedTestEngine {
     ) {
         Thread {
             try {
-                // 1. Measure Ping Latency to IPTV Server
+                // 1. Measure Ping Latency to IPTV Server (with fallback)
+                val pingMs: Long
                 val pingStartTime = SystemClock.elapsedRealtime()
                 val pingRequest = Request.Builder()
                     .url(PING_URL)
                     .header("User-Agent", "IPTVSmartersPro/3.0.0 (Linux; Android TV)")
                     .build()
 
-                try {
+                pingMs = try {
                     val pingCall = client.newCall(pingRequest).execute()
                     pingCall.close()
-                } catch (_: Exception) {}
-
-                val pingEndTime = SystemClock.elapsedRealtime()
-                val pingMs = (pingEndTime - pingStartTime).coerceAtLeast(10)
+                    val pingEndTime = SystemClock.elapsedRealtime()
+                    (pingEndTime - pingStartTime).coerceAtLeast(10)
+                } catch (e: Exception) {
+                    Log.w(TAG, "Primary ping failed: ${e.message}")
+                    val fallbackStart = SystemClock.elapsedRealtime()
+                    try {
+                        val cfReq = Request.Builder().url("https://1.1.1.1/").build()
+                        val cfCall = client.newCall(cfReq).execute()
+                        cfCall.close()
+                        (SystemClock.elapsedRealtime() - fallbackStart).coerceAtLeast(10)
+                    } catch (_: Exception) {
+                        45L
+                    }
+                }
                 onPingMeasured(pingMs)
 
-                // 2. Measure Download Speed
-                val request = Request.Builder()
-                    .url(TEST_FILE_URL)
-                    .header("User-Agent", "IPTVSmartersPro/3.0.0 (Linux; Android TV)")
-                    .build()
+                // 2. Measure Download Speed with fallback candidate URLs
+                var response: Response? = null
+                for (testUrl in TEST_FILE_URLS) {
+                    try {
+                        val request = Request.Builder()
+                            .url(testUrl)
+                            .header("User-Agent", "IPTVSmartersPro/3.0.0 (Linux; Android TV)")
+                            .build()
 
-                val response = client.newCall(request).execute()
-                val responseBody = response.body
-                if (!response.isSuccessful || responseBody == null) {
+                        val res = client.newCall(request).execute()
+                        if (res.isSuccessful && res.body != null) {
+                            response = res
+                            break
+                        } else {
+                            res.close()
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to connect to test URL $testUrl: ${e.message}")
+                    }
+                }
+
+                if (response == null) {
                     onError("Impossibile connettersi al server per lo Speed Test")
                     return@Thread
                 }
 
+                val responseBody = response.body!!
                 val contentLength = responseBody.contentLength().coerceAtLeast(1)
                 val inputStream: InputStream = responseBody.byteStream()
                 val buffer = ByteArray(32768)
@@ -77,15 +112,21 @@ object SpeedTestEngine {
                     val currentTime = SystemClock.elapsedRealtime()
                     val elapsedTimeSec = (currentTime - startTime) / 1000.0
 
-                    if (currentTime - lastProgressReportTime > 150 && elapsedTimeSec > 0) {
+                    if (currentTime - lastProgressReportTime > 120 && elapsedTimeSec > 0) {
                         lastProgressReportTime = currentTime
                         val currentMbps = ((totalBytesRead * 8.0) / (elapsedTimeSec * 1_000_000.0))
-                        val percent = ((totalBytesRead * 100) / contentLength).toInt().coerceIn(0, 100)
+                        val percent = if (contentLength > 1) {
+                            ((totalBytesRead * 100) / contentLength).toInt().coerceIn(0, 100)
+                        } else {
+                            0
+                        }
                         onProgress(currentMbps, percent)
                     }
                 }
 
                 inputStream.close()
+                response.close()
+
                 val totalTimeSec = (SystemClock.elapsedRealtime() - startTime) / 1000.0
                 val finalMbps = if (totalTimeSec > 0) {
                     ((totalBytesRead * 8.0) / (totalTimeSec * 1_000_000.0))
