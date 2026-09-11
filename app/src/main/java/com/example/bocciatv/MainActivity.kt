@@ -12,7 +12,6 @@ import com.example.bocciatv.data.model.UserAuth
 import com.example.bocciatv.data.network.NetworkModule
 import com.example.bocciatv.ui.content.ContentActivity
 import com.example.bocciatv.ui.settings.SettingsActivity
-import com.example.bocciatv.ui.vpn.VpnActivity
 import com.example.bocciatv.utils.UpdateManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -49,10 +48,6 @@ class MainActivity : FragmentActivity() {
 
         findViewById<Button>(R.id.btn_settings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
-        }
-
-        findViewById<Button>(R.id.btn_vpn).setOnClickListener {
-            startActivity(Intent(this, VpnActivity::class.java))
         }
 
         // Silent refresh at startup to ensure date is correct
