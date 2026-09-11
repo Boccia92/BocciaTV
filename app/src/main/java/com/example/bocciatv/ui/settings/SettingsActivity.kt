@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentActivity
 import com.example.bocciatv.R
 import com.example.bocciatv.data.local.PrefsManager
 import com.example.bocciatv.ui.login.LoginActivity
+import com.example.bocciatv.ui.speedtest.SpeedTestActivity
 import com.example.bocciatv.utils.UpdateManager
 import java.util.*
 
@@ -29,6 +30,10 @@ class SettingsActivity : FragmentActivity() {
 
         findViewById<TextView>(R.id.tv_user_info).text = "Username: ${prefs.user}"
         findViewById<TextView>(R.id.tv_exp_info).text = "Scadenza: ${prefs.expDate}"
+
+        findViewById<Button>(R.id.btn_speed_test).setOnClickListener {
+            startActivity(Intent(this, SpeedTestActivity::class.java))
+        }
 
         findViewById<Button>(R.id.btn_logout).setOnClickListener {
             prefs.clear()
