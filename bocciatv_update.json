@@ -1,5 +1,5 @@
 {
-  "versionCode": 6,
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.3/bocciatv.apk",
-  "releaseNotes": "- Nuovo logo grafico dorato BocciaTV come sfondo Dashboard e icona della TV\n- Miglioramenti grafici ed estetici"
+  "versionCode": 7,
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.4/bocciatv.apk",
+  "releaseNotes": "- Ottimizzazione grafica per Fire TV (compatibilità banner, icona e sfondo Dashboard)"
 }
