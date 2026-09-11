@@ -1,6 +1,6 @@
 {
-  "versionCode": 101,
-  "versionName": "3.1",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.1/bocciatv.apk",
-  "releaseNotes": "- Aggiunto popup con avviso durante l'aggiornamento lista e messaggio 'Lista aggiornata!' al completamento\n- Risolto errore Speed Test e focus automatico su Live TV"
+  "versionCode": 102,
+  "versionName": "3.2",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.2/bocciatv.apk",
+  "releaseNotes": "- Compatibilità universale garantita per Fire TV Stick, Fire OS, Google TV e Android Box/Smartphone\n- Aggiunto doppio launcher e disattivato il vincolo estretto Leanback"
 }
