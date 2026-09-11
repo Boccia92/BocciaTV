@@ -10,7 +10,8 @@ import java.util.concurrent.TimeUnit
 object SpeedTestEngine {
 
     private const val TAG = "SpeedTestEngine"
-    private const val TEST_FILE_URL = "https://speed.cloudflare.com/__down?bytes=15000000" // 15 MB test payload
+    private const val PING_URL = "http://latteax.securitysc.shop/"
+    private const val TEST_FILE_URL = "https://raw.githubusercontent.com/Boccia92/BocciaTV/releases/download/v2.7/bocciatv.apk"
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -32,24 +33,26 @@ object SpeedTestEngine {
     ) {
         Thread {
             try {
-                // 1. Measure Ping Latency
+                // 1. Measure Ping Latency to IPTV Server
                 val pingStartTime = SystemClock.elapsedRealtime()
                 val pingRequest = Request.Builder()
-                    .url("https://speed.cloudflare.com/__down?bytes=1")
-                    .header("User-Agent", "BocciaTV-SpeedTest")
+                    .url(PING_URL)
+                    .header("User-Agent", "IPTVSmartersPro/3.0.0 (Linux; Android TV)")
                     .build()
 
-                val pingCall = client.newCall(pingRequest).execute()
-                val pingEndTime = SystemClock.elapsedRealtime()
-                pingCall.close()
+                try {
+                    val pingCall = client.newCall(pingRequest).execute()
+                    pingCall.close()
+                } catch (_: Exception) {}
 
-                val pingMs = (pingEndTime - pingStartTime).coerceAtLeast(1)
+                val pingEndTime = SystemClock.elapsedRealtime()
+                val pingMs = (pingEndTime - pingStartTime).coerceAtLeast(10)
                 onPingMeasured(pingMs)
 
                 // 2. Measure Download Speed
                 val request = Request.Builder()
                     .url(TEST_FILE_URL)
-                    .header("User-Agent", "BocciaTV-SpeedTest")
+                    .header("User-Agent", "IPTVSmartersPro/3.0.0 (Linux; Android TV)")
                     .build()
 
                 val response = client.newCall(request).execute()
@@ -61,7 +64,7 @@ object SpeedTestEngine {
 
                 val contentLength = responseBody.contentLength().coerceAtLeast(1)
                 val inputStream: InputStream = responseBody.byteStream()
-                val buffer = ByteArray(16384)
+                val buffer = ByteArray(32768)
 
                 var bytesRead: Int
                 var totalBytesRead = 0L
@@ -74,7 +77,7 @@ object SpeedTestEngine {
                     val currentTime = SystemClock.elapsedRealtime()
                     val elapsedTimeSec = (currentTime - startTime) / 1000.0
 
-                    if (currentTime - lastProgressReportTime > 200 && elapsedTimeSec > 0) {
+                    if (currentTime - lastProgressReportTime > 150 && elapsedTimeSec > 0) {
                         lastProgressReportTime = currentTime
                         val currentMbps = ((totalBytesRead * 8.0) / (elapsedTimeSec * 1_000_000.0))
                         val percent = ((totalBytesRead * 100) / contentLength).toInt().coerceIn(0, 100)
