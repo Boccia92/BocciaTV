@@ -1,5 +1,6 @@
 {
   "versionCode": 11,
+  "versionName": "2.8",
   "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v2.8/bocciatv.apk",
   "releaseNotes": "- Risolto errore di connessione nello Speed Test\n- Integrazione server CDN ad alte prestazioni e sistemi di fallback"
 }

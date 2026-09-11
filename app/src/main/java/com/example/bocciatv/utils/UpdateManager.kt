@@ -95,9 +95,10 @@ object UpdateManager {
     }
 
     private fun showUpdateDialog(activity: FragmentActivity, update: UpdateInfo) {
+        val versionDisplay = update.versionName ?: "v${update.versionCode}"
         AlertDialog.Builder(activity, R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("Nuovo Aggiornamento!")
-            .setMessage("È disponibile la versione ${update.versionCode}.\n\nNovità:\n${update.releaseNotes}")
+            .setMessage("È disponibile la versione $versionDisplay.\n\nNovità:\n${update.releaseNotes}")
             .setPositiveButton("Aggiorna") { _, _ ->
                 downloadAndInstallApk(activity, update.apkUrl)
             }
@@ -112,7 +113,7 @@ object UpdateManager {
             setTitle("Download In Corso")
             setMessage("Download dell'aggiornamento in corso...")
             setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
-            isIndeterminate = false
+            isIndeterminate = true
             max = 100
             setCancelable(false)
             show()
@@ -144,6 +145,12 @@ object UpdateManager {
                 val apkFile = File(activity.externalCacheDir ?: activity.cacheDir, "bocciatv_update.apk")
                 try {
                     val contentLength = responseBody.contentLength()
+                    if (contentLength > 0) {
+                        activity.runOnUiThread {
+                            progressDialog.isIndeterminate = false
+                        }
+                    }
+
                     val inputStream: InputStream = responseBody.byteStream()
                     val outputStream = FileOutputStream(apkFile)
 
@@ -182,7 +189,10 @@ object UpdateManager {
     }
 
     private fun installApk(context: Context, apkFile: File) {
-        if (!apkFile.exists()) return
+        if (!apkFile.exists() || apkFile.length() == 0L) {
+            Toast.makeText(context, "File APK non trovato o non valido", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
             Toast.makeText(context, "Abilita l'autorizzazione 'Installa app sconosciute' per BocciaTV", Toast.LENGTH_LONG).show()
@@ -198,24 +208,24 @@ object UpdateManager {
             return
         }
 
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            apkFile
-        )
-
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        }
-
         try {
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                apkFile
+            )
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+
             context.startActivity(intent)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to launch installer intent: ${e.message}")
-            Toast.makeText(context, "Impossibile avviare l'installazione", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Impossibile avviare l'installazione: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
