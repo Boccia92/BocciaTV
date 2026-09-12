@@ -1,6 +1,6 @@
 {
-  "versionCode": 104,
-  "versionName": "3.4",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.4/bocciatv.apk",
-  "releaseNotes": "- Layout responsive ed ottimizzato per tutti gli schermi (Smartphone Android e TV)\n- Ridimensionate le icone centrali ed i pulsanti di intestazione per evitare sovrapposizioni"
+  "versionCode": 105,
+  "versionName": "3.5",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.5/bocciatv.apk",
+  "releaseNotes": "- Aggiunto ScrollView ed ottimizzate le schermate di Impostazioni, Speed Test e Login per Smartphone e TV"
 }
