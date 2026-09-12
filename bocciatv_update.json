@@ -1,6 +1,6 @@
 {
-  "versionCode": 103,
-  "versionName": "3.3",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.3/bocciatv.apk",
-  "releaseNotes": "- Controllo e aggiornamento automatico della lista all'avvio dell'applicazione con notifica di conferma\n- Compatibilità Fire TV e Android TV"
+  "versionCode": 104,
+  "versionName": "3.4",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.4/bocciatv.apk",
+  "releaseNotes": "- Layout responsive ed ottimizzato per tutti gli schermi (Smartphone Android e TV)\n- Ridimensionate le icone centrali ed i pulsanti di intestazione per evitare sovrapposizioni"
 }
