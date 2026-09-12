@@ -1,6 +1,6 @@
 {
-  "versionCode": 330,
-  "versionName": "13.4",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.4/bocciatv.apk",
-  "releaseNotes": "- Risolto il caricamento automatico accidentale delle categorie: ora si aggiornano solo premendo OK sulla categoria desiderata"
+  "versionCode": 340,
+  "versionName": "13.5",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.5/bocciatv.apk",
+  "releaseNotes": "- Aggiornamento di manutenzione v13.5: bypass della cache di rete per installazione pulita dell'ultima patch"
 }
