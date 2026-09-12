@@ -1,6 +1,6 @@
 {
-  "versionCode": 106,
-  "versionName": "3.6",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.6/bocciatv.apk",
-  "releaseNotes": "- Sostituito lo zoom del testo nelle categorie della barra laterale sinistra con evidenziatura di sfondo e bordo"
+  "versionCode": 107,
+  "versionName": "3.7",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.7/bocciatv.apk",
+  "releaseNotes": "- Unificato il controllo EPG con i comandi del Player e chiusura immediata premendo il tasto Indietro senza uscire dal video"
 }

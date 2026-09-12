@@ -2,6 +2,7 @@ package com.example.bocciatv.ui.player
 
 import android.app.AlertDialog
 import android.media.audiofx.DynamicsProcessing
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -12,6 +13,7 @@ import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.FragmentActivity
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -113,9 +115,14 @@ class PlayerActivity : FragmentActivity() {
 
         playerView.setControllerVisibilityListener(object : PlayerView.ControllerVisibilityListener {
             override fun onVisibilityChanged(visibility: Int) {
-                if (visibility == View.VISIBLE) {
-                    val settingsBtn = playerView.findViewById<View>(androidx.media3.ui.R.id.exo_settings)
+                if (visibility == View.GONE) {
+                    llEpgOverlay.visibility = View.GONE
+                    handler.removeCallbacks(hideEpgRunnable)
+                } else if (visibility == View.VISIBLE) {
+                    val settingsId = resources.getIdentifier("exo_settings", "id", packageName)
+                    val settingsBtn = if (settingsId != 0) playerView.findViewById<View>(settingsId) else null
                     settingsBtn?.setOnClickListener { showSettingsMenu() }
+                    llEpgOverlay.visibility = View.VISIBLE
                 }
             }
         })
@@ -138,6 +145,17 @@ class PlayerActivity : FragmentActivity() {
             initializePlayer(urlsArray.toList(), startIndex)
             if (ids.isNotEmpty()) loadEpgInfo(ids[0])
         }
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (llEpgOverlay.visibility == View.VISIBLE || playerView.isControllerFullyVisible) {
+                    hideEpgOverlay()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
     private fun initializePlayer(urls: List<String>, startIndex: Int) {
@@ -228,11 +246,22 @@ class PlayerActivity : FragmentActivity() {
 
     private fun showEpgOverlay() {
         llEpgOverlay.visibility = View.VISIBLE
+        playerView.showController()
         handler.removeCallbacks(hideEpgRunnable)
-        handler.postDelayed(hideEpgRunnable, 6000)
+        handler.postDelayed(hideEpgRunnable, 5000)
+    }
+
+    private fun hideEpgOverlay() {
+        llEpgOverlay.visibility = View.GONE
+        playerView.hideController()
+        handler.removeCallbacks(hideEpgRunnable)
     }
 
     private fun applyNightMode(active: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            Toast.makeText(this, "Modalità Notte non supportata su questo dispositivo", Toast.LENGTH_SHORT).show()
+            return
+        }
         try {
             val sessionId = player?.audioSessionId ?: return
             if (sessionId == C.AUDIO_SESSION_ID_UNSET) return
@@ -364,17 +393,17 @@ class PlayerActivity : FragmentActivity() {
                 }
                 KeyEvent.KEYCODE_DPAD_RIGHT -> {
                     it.seekTo(it.currentPosition + 10000)
-                    playerView.showController()
+                    showEpgOverlay()
                     return true
                 }
                 KeyEvent.KEYCODE_DPAD_LEFT -> {
                     it.seekTo(it.currentPosition - 10000)
-                    playerView.showController()
+                    showEpgOverlay()
                     return true
                 }
                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
                     if (it.isPlaying) it.pause() else it.play()
-                    playerView.showController()
+                    showEpgOverlay()
                     return true
                 }
                 KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_MENU -> {
