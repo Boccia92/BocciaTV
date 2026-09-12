@@ -1,6 +1,6 @@
 {
-  "versionCode": 360,
-  "versionName": "13.7",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.7/bocciatv.apk",
-  "releaseNotes": "- Aggiunto il tasto 'Ignora' alla finestra di aggiornamento: premendolo, l'avviso di aggiornamento non verra piu riproposto in automatico ad ogni avvio (ma potra sempre essere scaricato dalle Impostazioni)."
+  "versionCode": 370,
+  "versionName": "13.8",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.8/bocciatv.apk",
+  "releaseNotes": "- Risolto il bug degli aggiornamenti in loop infinito causato da un errore della cache del pacchetto di installazione."
 }
