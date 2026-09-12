@@ -1,6 +1,6 @@
 {
-  "versionCode": 270,
-  "versionName": "13.0",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.0/bocciatv.apk",
-  "releaseNotes": "- Aggiunto avviso di conferma uscita premendo il tasto Indietro sulla Dashboard"
+  "versionCode": 300,
+  "versionName": "13.1",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.1/bocciatv.apk",
+  "releaseNotes": "- Aggiunto avviso di conferma uscita premendo il tasto Indietro sulla Dashboard\n- Aggiornamento forzato della cache globale"
 }
