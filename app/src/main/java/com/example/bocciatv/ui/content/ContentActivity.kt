@@ -122,7 +122,12 @@ class ContentActivity : FragmentActivity() {
                 streamAdapter.update(filtered)
                 if (focusStreams) {
                     val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
-                    rvStreams.post { rvStreams.requestFocus() }
+                    rvStreams.post { 
+                        rvStreams.requestFocus() 
+                        catAdapter.notifyDataSetChanged()
+                    }
+                } else {
+                    catAdapter.notifyDataSetChanged()
                 }
             }
         }.start()
@@ -159,12 +164,11 @@ class ContentActivity : FragmentActivity() {
                 }
             },
             onClick = { item ->
-                if (currentCatId != item.id) {
-                    currentCatId = item.id
-                    findViewById<EditText>(R.id.et_search).text.clear()
-                    catAdapter.notifyDataSetChanged()
-                    applyFilters(focusStreams = false)
-                }
+                currentCatId = item.id
+                findViewById<EditText>(R.id.et_search).text.clear()
+                // Richiediamo lo spostamento del focus sui contenuti 
+                // e l'aggiornamento UI avverrà dopo il cambio focus per evitare il reset
+                applyFilters(focusStreams = true)
             },
             enableZoom = false
         )
