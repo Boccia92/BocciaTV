@@ -365,29 +365,44 @@ class PlayerActivity : FragmentActivity() {
             .show()
     }
 
+    private fun findControllerView(idName: String): View? {
+        val resId = resources.getIdentifier(idName, "id", packageName)
+        return if (resId != 0) playerView.findViewById(resId) else null
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         player?.let {
-            when (keyCode) {
-                KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_INFO -> {
-                    showEpgOverlay()
-                    return true
+            if (!playerView.isControllerFullyVisible) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER,
+                    KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_UP,
+                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
+                    KeyEvent.KEYCODE_INFO -> {
+                        showEpgOverlay()
+                        val playBtn = findControllerView("exo_play") ?: findControllerView("exo_pause")
+                        playBtn?.requestFocus()
+                        return true
+                    }
+                    KeyEvent.KEYCODE_MENU -> {
+                        showSettingsMenu()
+                        return true
+                    }
                 }
-                KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                    it.seekTo(it.currentPosition + 10000)
-                    showEpgOverlay()
-                    return true
-                }
-                KeyEvent.KEYCODE_DPAD_LEFT -> {
-                    it.seekTo(it.currentPosition - 10000)
-                    showEpgOverlay()
-                    return true
-                }
-                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                    if (it.isPlaying) it.pause() else it.play()
-                    showEpgOverlay()
-                    return true
-                }
-                KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_MENU -> {
+            } else {
+                showEpgOverlay()
+                if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                    val timeBar = findControllerView("exo_progress")
+                    if (timeBar != null && !timeBar.hasFocus()) {
+                        timeBar.requestFocus()
+                        return true
+                    }
+                } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                    val playBtn = findControllerView("exo_play") ?: findControllerView("exo_pause")
+                    if (playBtn != null && !playBtn.hasFocus()) {
+                        playBtn.requestFocus()
+                        return true
+                    }
+                } else if (keyCode == KeyEvent.KEYCODE_MENU) {
                     showSettingsMenu()
                     return true
                 }

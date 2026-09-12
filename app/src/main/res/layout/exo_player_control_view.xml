@@ -4,7 +4,7 @@
     android:id="@+id/exo_controller_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#A0000000">
+    android:background="@android:color/transparent">
 
     <!-- Integrated Bottom Overlay Bar -->
     <LinearLayout
@@ -37,11 +37,13 @@
             <androidx.media3.ui.DefaultTimeBar
                 android:id="@id/exo_progress"
                 android:layout_width="0dp"
-                android:layout_height="24dp"
+                android:layout_height="28dp"
                 android:layout_weight="1"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                app:bar_height="4dp"
+                android:focusable="true"
+                android:clickable="true"
+                app:bar_height="5dp"
                 app:buffered_color="#55FFFFFF"
                 app:played_color="#FFC107"
                 app:scrubber_color="#FFC107"
@@ -128,75 +130,93 @@
 
                 <ImageButton
                     android:id="@id/exo_rew"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:padding="8dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:background="@drawable/player_button_focus_selector"
                     android:src="@android:drawable/ic_media_rew"
                     app:tint="@android:color/white"
                     android:contentDescription="Indietro 10s" />
 
                 <ImageButton
                     android:id="@id/exo_play"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
                     android:layout_marginStart="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:background="@drawable/player_button_focus_selector"
                     android:src="@android:drawable/ic_media_play"
                     app:tint="@android:color/white"
                     android:contentDescription="Play" />
 
                 <ImageButton
                     android:id="@id/exo_pause"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
                     android:layout_marginStart="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:background="@drawable/player_button_focus_selector"
                     android:src="@android:drawable/ic_media_pause"
                     app:tint="@android:color/white"
                     android:contentDescription="Pausa" />
 
                 <ImageButton
                     android:id="@id/exo_ffwd"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
                     android:layout_marginStart="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:background="@drawable/player_button_focus_selector"
                     android:src="@android:drawable/ic_media_ff"
                     app:tint="@android:color/white"
                     android:contentDescription="Avanti 10s" />
 
                 <ImageButton
                     android:id="@+id/btn_custom_zoom"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
                     android:layout_marginStart="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:background="@drawable/player_button_focus_selector"
                     android:src="@android:drawable/ic_menu_crop"
                     app:tint="@android:color/white"
-                    android:contentDescription="Zoom / Formato Video"
-                    android:focusable="true" />
+                    android:contentDescription="Zoom / Formato Video" />
 
                 <ImageButton
                     android:id="@+id/btn_custom_subtitles"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
                     android:layout_marginStart="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:background="@drawable/player_button_focus_selector"
                     android:src="@android:drawable/ic_menu_manage"
                     app:tint="@android:color/white"
-                    android:contentDescription="Sottotitoli"
-                    android:focusable="true" />
+                    android:contentDescription="Sottotitoli" />
 
                 <ImageButton
                     android:id="@+id/btn_custom_settings"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
                     android:layout_marginStart="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:background="@drawable/player_button_focus_selector"
                     android:src="@drawable/ic_settings"
                     app:tint="@android:color/white"
-                    android:contentDescription="Impostazioni Video"
-                    android:focusable="true" />
+                    android:contentDescription="Impostazioni Video" />
 
             </LinearLayout>
 

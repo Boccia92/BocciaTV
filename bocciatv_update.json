@@ -1,6 +1,6 @@
 {
-  "versionCode": 200,
-  "versionName": "6.0",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v6.0/bocciatv.apk",
-  "releaseNotes": "- Nuovo layout integrato del Player con barra inferiore EPG, locandina, seekbar, titolo e pulsanti d'azione completi"
+  "versionCode": 210,
+  "versionName": "7.0",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v7.0/bocciatv.apk",
+  "releaseNotes": "- Abilitata la navigazione con cursore telecomando tra Seekbar e pulsanti d'azione nel Player\n- Rimosso lo scurimento dello schermo all'apertura dell'overlay EPG"
 }
