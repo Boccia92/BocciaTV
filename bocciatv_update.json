@@ -1,6 +1,6 @@
 {
-  "versionCode": 220,
-  "versionName": "8.0",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v8.0/bocciatv.apk",
-  "releaseNotes": "- Eliminato l'effetto flash o fermo immagine del canale precedente all'uscita dal Player o all'apertura di un nuovo canale"
+  "versionCode": 230,
+  "versionName": "9.0",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v9.0/bocciatv.apk",
+  "releaseNotes": "- Transizioni istantanee tra la lista dei canali e il Player senza alcun fermo immagine o lampo del canale precedente"
 }

@@ -431,6 +431,16 @@ class PlayerActivity : FragmentActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
+    override fun finish() {
+        playerView.hideController()
+        playerView.player = null
+        player?.stop()
+        player?.release()
+        player = null
+        super.finish()
+        overridePendingTransition(0, 0)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)

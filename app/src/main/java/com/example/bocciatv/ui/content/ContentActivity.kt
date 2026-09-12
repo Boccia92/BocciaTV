@@ -218,6 +218,7 @@ class ContentActivity : FragmentActivity() {
                     putExtra("poster", item.icon ?: item.cover)
                 }
                 startActivity(intent)
+                overridePendingTransition(0, 0)
             }
         }, onLongClick = { item ->
             val id = item.streamId?.toString() ?: item.seriesId?.toString() ?: ""
