@@ -15,6 +15,7 @@ import com.example.bocciatv.data.model.UserAuth
 import com.example.bocciatv.data.network.NetworkModule
 import com.example.bocciatv.ui.content.ContentActivity
 import com.example.bocciatv.ui.settings.SettingsActivity
+import com.example.bocciatv.utils.DisplayUtils
 import com.example.bocciatv.utils.UpdateManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -35,6 +36,7 @@ class MainActivity : FragmentActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
 
         super.onCreate(savedInstanceState)
+        DisplayUtils.maximizeRefreshRate(window)
         setContentView(R.layout.activity_main)
         prefs = PrefsManager(this)
 

@@ -26,6 +26,7 @@ import com.example.bocciatv.data.model.StreamItem
 import com.example.bocciatv.data.network.NetworkModule
 import com.example.bocciatv.ui.adapter.GenericAdapter
 import com.example.bocciatv.ui.player.PlayerActivity
+import com.example.bocciatv.utils.DisplayUtils
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -59,6 +60,7 @@ class ContentActivity : FragmentActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
 
         super.onCreate(savedInstanceState)
+        DisplayUtils.maximizeRefreshRate(window)
         setContentView(R.layout.activity_content)
         prefs = PrefsManager(this)
         type = intent.getStringExtra(EXTRA_TYPE) ?: TYPE_LIVE

@@ -31,6 +31,7 @@ import com.example.bocciatv.R
 import com.example.bocciatv.data.local.PrefsManager
 import com.example.bocciatv.data.model.EpgResponse
 import com.example.bocciatv.data.network.NetworkModule
+import com.example.bocciatv.utils.DisplayUtils
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -88,6 +89,7 @@ class PlayerActivity : FragmentActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
 
         super.onCreate(savedInstanceState)
+        DisplayUtils.maximizeRefreshRate(window)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_player)
         prefs = PrefsManager(this)
