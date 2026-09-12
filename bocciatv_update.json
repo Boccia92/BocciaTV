@@ -1,6 +1,6 @@
 {
-  "versionCode": 320,
-  "versionName": "13.3",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.3/bocciatv.apk",
-  "releaseNotes": "- Ripristinato il comportamento originale delle categorie (il cursore non salta piu automaticamente, per spostarsi nella griglia bisogna premere OK o Destra)"
+  "versionCode": 330,
+  "versionName": "13.4",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.4/bocciatv.apk",
+  "releaseNotes": "- Risolto il caricamento automatico accidentale delle categorie: ora si aggiornano solo premendo OK sulla categoria desiderata"
 }
