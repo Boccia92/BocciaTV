@@ -60,7 +60,6 @@ class ContentActivity : FragmentActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
 
         super.onCreate(savedInstanceState)
-        DisplayUtils.maximizeRefreshRate(window)
         setContentView(R.layout.activity_content)
         prefs = PrefsManager(this)
         type = intent.getStringExtra(EXTRA_TYPE) ?: TYPE_LIVE

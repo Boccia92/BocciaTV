@@ -1,6 +1,6 @@
 {
-  "versionCode": 250,
-  "versionName": "11.0",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v11.0/bocciatv.apk",
-  "releaseNotes": "- Abilitata la massima frequenza di aggiornamento dello schermo (60Hz/120Hz) e accelerazione hardware GPU completa per la massima fluidita"
+  "versionCode": 260,
+  "versionName": "12.0",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v12.0/bocciatv.apk",
+  "releaseNotes": "- Rimosso il cambio dinamico di frequenza HDMI per evitare sganci di segnale sulla TV"
 }

@@ -89,7 +89,6 @@ class PlayerActivity : FragmentActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
 
         super.onCreate(savedInstanceState)
-        DisplayUtils.maximizeRefreshRate(window)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_player)
         prefs = PrefsManager(this)

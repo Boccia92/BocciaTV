@@ -36,7 +36,6 @@ class MainActivity : FragmentActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
 
         super.onCreate(savedInstanceState)
-        DisplayUtils.maximizeRefreshRate(window)
         setContentView(R.layout.activity_main)
         prefs = PrefsManager(this)
 
