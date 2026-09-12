@@ -1,6 +1,6 @@
 {
-  "versionCode": 300,
-  "versionName": "13.1",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.1/bocciatv.apk",
-  "releaseNotes": "- Aggiunto avviso di conferma uscita premendo il tasto Indietro sulla Dashboard\n- Aggiornamento forzato della cache globale"
+  "versionCode": 310,
+  "versionName": "13.2",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.2/bocciatv.apk",
+  "releaseNotes": "- Spostamento automatico del cursore/focus all'interno della lista contenuti quando si clicca una categoria"
 }

@@ -94,7 +94,7 @@ class ContentActivity : FragmentActivity() {
         })
     }
 
-    private fun applyFilters() {
+    private fun applyFilters(focusStreams: Boolean = false) {
         val search = currentSearch
         val catId = currentCatId
         val currentType = type
@@ -120,6 +120,10 @@ class ContentActivity : FragmentActivity() {
             }
             runOnUiThread {
                 streamAdapter.update(filtered)
+                if (focusStreams) {
+                    val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
+                    rvStreams.post { rvStreams.requestFocus() }
+                }
             }
         }.start()
     }
@@ -158,7 +162,7 @@ class ContentActivity : FragmentActivity() {
                 currentCatId = item.id
                 findViewById<EditText>(R.id.et_search).text.clear()
                 catAdapter.notifyDataSetChanged()
-                applyFilters()
+                applyFilters(focusStreams = true)
             },
             enableZoom = false
         )
