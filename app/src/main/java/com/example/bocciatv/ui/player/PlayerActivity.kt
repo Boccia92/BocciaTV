@@ -108,9 +108,24 @@ class PlayerActivity : FragmentActivity() {
         val idsArray = intent.getStringArrayExtra("ids")
         val startIndex = intent.getIntExtra("index", 0)
         val channelName = intent.getStringExtra("name") ?: "Canale TV"
+        val posterUrl = intent.getStringExtra("poster")
 
         val tvTitle = playerView.findViewById<TextView?>(R.id.tv_epg_title)
+        val tvInfo = playerView.findViewById<TextView?>(R.id.tv_epg_info)
+        val ivPoster = playerView.findViewById<ImageView?>(R.id.iv_epg_poster)
+
         tvTitle?.text = channelName
+        tvInfo?.text = "In onda: Caricamento..."
+
+        if (!posterUrl.isNullOrEmpty() && ivPoster != null) {
+            Glide.with(this)
+                .load(posterUrl)
+                .placeholder(R.drawable.movie)
+                .error(R.drawable.movie)
+                .into(ivPoster)
+        } else {
+            ivPoster?.setImageResource(R.drawable.movie)
+        }
 
         if (urlsArray == null || idsArray == null) {
             val singleUrl = intent.getStringExtra("url") ?: return
@@ -129,6 +144,11 @@ class PlayerActivity : FragmentActivity() {
                 if (playerView.isControllerFullyVisible) {
                     hideEpgOverlay()
                 } else {
+                    hideEpgOverlay()
+                    playerView.player = null
+                    player?.stop()
+                    player?.release()
+                    player = null
                     finish()
                 }
             }
@@ -413,8 +433,13 @@ class PlayerActivity : FragmentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        handler.removeCallbacksAndMessages(null)
         saveCurrentPosition()
         dynamicsProcessing?.release()
+        dynamicsProcessing = null
+        playerView.hideController()
+        playerView.player = null
+        player?.stop()
         player?.release()
         player = null
     }

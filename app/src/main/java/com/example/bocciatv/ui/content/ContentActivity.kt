@@ -215,6 +215,7 @@ class ContentActivity : FragmentActivity() {
                     putExtra("url", streamUrl)
                     putExtra("id", id)
                     putExtra("name", item.name)
+                    putExtra("poster", item.icon ?: item.cover)
                 }
                 startActivity(intent)
             }

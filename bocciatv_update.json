@@ -1,6 +1,6 @@
 {
-  "versionCode": 210,
-  "versionName": "7.0",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v7.0/bocciatv.apk",
-  "releaseNotes": "- Abilitata la navigazione con cursore telecomando tra Seekbar e pulsanti d'azione nel Player\n- Rimosso lo scurimento dello schermo all'apertura dell'overlay EPG"
+  "versionCode": 220,
+  "versionName": "8.0",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v8.0/bocciatv.apk",
+  "releaseNotes": "- Eliminato l'effetto flash o fermo immagine del canale precedente all'uscita dal Player o all'apertura di un nuovo canale"
 }
