@@ -10,7 +10,8 @@ class GenericAdapter<T>(
     private val bind: (View, T) -> Unit,
     private val onClick: (T) -> Unit,
     private val onFocus: ((T) -> Unit)? = null,
-    private val onLongClick: ((T) -> Unit)? = null
+    private val onLongClick: ((T) -> Unit)? = null,
+    private val enableZoom: Boolean = true
 ) : RecyclerView.Adapter<GenericAdapter.ViewHolder>() {
 
     private var items = emptyList<T>()
@@ -33,13 +34,19 @@ class GenericAdapter<T>(
             onLongClick?.invoke(item)
             true
         }
-        holder.itemView.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                holder.itemView.animate().scaleX(1.1f).scaleY(1.1f).setDuration(200).start()
-                onFocus?.invoke(item)
-            } else {
-                holder.itemView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(200).start()
+        holder.itemView.setOnFocusChangeListener { v, hasFocus ->
+            if (enableZoom) {
+                if (hasFocus) {
+                    v.animate().scaleX(1.08f).scaleY(1.08f).setDuration(150).start()
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150).start()
+                }
             }
+            if (hasFocus) {
+                onFocus?.invoke(item)
+            }
+            // Re-bind view state to update background color & text color on focus change
+            bind(v, item)
         }
     }
 

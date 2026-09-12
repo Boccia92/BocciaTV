@@ -1,6 +1,6 @@
 {
-  "versionCode": 105,
-  "versionName": "3.5",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.5/bocciatv.apk",
-  "releaseNotes": "- Aggiunto ScrollView ed ottimizzate le schermate di Impostazioni, Speed Test e Login per Smartphone e TV"
+  "versionCode": 106,
+  "versionName": "3.6",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.6/bocciatv.apk",
+  "releaseNotes": "- Sostituito lo zoom del testo nelle categorie della barra laterale sinistra con evidenziatura di sfondo e bordo"
 }

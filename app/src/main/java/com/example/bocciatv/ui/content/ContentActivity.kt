@@ -2,6 +2,7 @@ package com.example.bocciatv.ui.content
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,6 +12,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,6 +29,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.Locale
 
+@UnstableApi
 class ContentActivity : FragmentActivity() {
     companion object {
         const val EXTRA_TYPE = "type"
@@ -112,20 +115,42 @@ class ContentActivity : FragmentActivity() {
 
     private fun setupLists() {
         val rvCats = findViewById<RecyclerView>(R.id.rv_cats)
-        catAdapter = GenericAdapter(R.layout.item_simple, { v, item ->
-            val tv = v.findViewById<TextView>(R.id.tv_name)
-            tv.text = item.name
-            if (item.id == currentCatId) {
-                v.setBackgroundResource(R.drawable.category_active_bg)
-            } else {
-                v.setBackgroundResource(android.R.color.transparent)
-            }
-        }, { item ->
-            currentCatId = item.id
-            findViewById<EditText>(R.id.et_search).text.clear()
-            catAdapter.notifyDataSetChanged()
-            applyFilters()
-        })
+        catAdapter = GenericAdapter(
+            layoutId = R.layout.item_simple,
+            bind = { v, item ->
+                val tv = v.findViewById<TextView>(R.id.tv_name)
+                tv.text = item.name
+
+                val isSelected = item.id == currentCatId
+                val isFocused = v.hasFocus()
+
+                when {
+                    isFocused && isSelected -> {
+                        v.setBackgroundResource(R.drawable.category_focused_active_bg)
+                        tv.setTextColor(Color.BLACK)
+                    }
+                    isFocused -> {
+                        v.setBackgroundResource(R.drawable.category_focused_bg)
+                        tv.setTextColor(Color.BLACK)
+                    }
+                    isSelected -> {
+                        v.setBackgroundResource(R.drawable.category_active_bg)
+                        tv.setTextColor(Color.WHITE)
+                    }
+                    else -> {
+                        v.setBackgroundResource(android.R.color.transparent)
+                        tv.setTextColor(Color.WHITE)
+                    }
+                }
+            },
+            onClick = { item ->
+                currentCatId = item.id
+                findViewById<EditText>(R.id.et_search).text.clear()
+                catAdapter.notifyDataSetChanged()
+                applyFilters()
+            },
+            enableZoom = false
+        )
         rvCats.layoutManager = LinearLayoutManager(this)
         rvCats.adapter = catAdapter
 
