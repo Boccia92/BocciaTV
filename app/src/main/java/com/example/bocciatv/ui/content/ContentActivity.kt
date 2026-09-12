@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DecodeFormat
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.bocciatv.R
 import com.example.bocciatv.data.local.PrefsManager
 import com.example.bocciatv.data.model.Category
@@ -92,25 +94,33 @@ class ContentActivity : FragmentActivity() {
     }
 
     private fun applyFilters() {
-        val filtered = if (currentSearch.isNotEmpty()) {
-            masterList.filter { it.name?.contains(currentSearch, ignoreCase = true) == true }
-        } else if (currentCatId == CAT_FAVORITES) {
-            val favIds = prefs.getFavorites(type)
-            masterList.filter { 
-                val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
-                favIds.contains(id)
+        val search = currentSearch
+        val catId = currentCatId
+        val currentType = type
+
+        Thread {
+            val filtered = if (search.isNotEmpty()) {
+                masterList.filter { it.name?.contains(search, ignoreCase = true) == true }
+            } else if (catId == CAT_FAVORITES) {
+                val favIds = prefs.getFavorites(currentType)
+                masterList.filter { 
+                    val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
+                    favIds.contains(id)
+                }
+            } else if (catId == CAT_RECENT) {
+                val recentIds = prefs.getRecentList()
+                recentIds.mapNotNull { id ->
+                    masterList.find { (it.streamId?.toString() ?: it.seriesId?.toString() ?: "") == id }
+                }
+            } else if (catId != null) {
+                masterList.filter { it.categoryId == catId }
+            } else {
+                masterList
             }
-        } else if (currentCatId == CAT_RECENT) {
-            val recentIds = prefs.getRecentList()
-            recentIds.mapNotNull { id ->
-                masterList.find { (it.streamId?.toString() ?: it.seriesId?.toString() ?: "") == id }
+            runOnUiThread {
+                streamAdapter.update(filtered)
             }
-        } else if (currentCatId != null) {
-            masterList.filter { it.categoryId == currentCatId }
-        } else {
-            masterList
-        }
-        streamAdapter.update(filtered)
+        }.start()
     }
 
     private fun setupLists() {
@@ -155,10 +165,27 @@ class ContentActivity : FragmentActivity() {
         rvCats.adapter = catAdapter
 
         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
+        rvStreams.setHasFixedSize(true)
+        rvStreams.setItemViewCacheSize(20)
+
         streamAdapter = GenericAdapter(R.layout.item_grid, { v, item ->
             v.findViewById<TextView>(R.id.tv_name).text = item.name
             val img = v.findViewById<ImageView>(R.id.iv_thumb)
-            Glide.with(this).load(item.icon ?: item.cover).placeholder(R.drawable.movie).into(img)
+            
+            val iconUrl = item.icon ?: item.cover
+            if (!iconUrl.isNullOrEmpty()) {
+                Glide.with(this)
+                    .asBitmap()
+                    .load(iconUrl)
+                    .override(200, 200)
+                    .format(DecodeFormat.PREFER_RGB_565)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(R.drawable.movie)
+                    .error(R.drawable.movie)
+                    .into(img)
+            } else {
+                img.setImageResource(R.drawable.movie)
+            }
             
             val id = item.streamId?.toString() ?: item.seriesId?.toString() ?: ""
             if (prefs.isWatched(id)) {

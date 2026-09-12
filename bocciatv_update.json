@@ -1,6 +1,6 @@
 {
-  "versionCode": 108,
-  "versionName": "3.8",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.8/bocciatv.apk",
-  "releaseNotes": "- Eliminato il lampo del banner EPG/controlli quando si esce da un canale per tornare alla lista"
+  "versionCode": 109,
+  "versionName": "3.9",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v3.9/bocciatv.apk",
+  "releaseNotes": "- Ottimizzata la memoria RAM e la velocita di scorrimento dei canali per Fire TV Stick e dispositivi datati\n- Aggiunta ridimensionamento immagini RGB_565, memoria LargeHeap e pulizia della cache di riciclo"
 }

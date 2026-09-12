@@ -3,7 +3,10 @@ package com.example.bocciatv.ui.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.bocciatv.R
 
 class GenericAdapter<T>(
     private val layoutId: Int,
@@ -47,6 +50,16 @@ class GenericAdapter<T>(
             }
             // Re-bind view state to update background color & text color on focus change
             bind(v, item)
+        }
+    }
+
+    override fun onViewRecycled(holder: ViewHolder) {
+        super.onViewRecycled(holder)
+        val img = holder.itemView.findViewById<ImageView?>(R.id.iv_thumb)
+        if (img != null) {
+            try {
+                Glide.with(holder.itemView.context).clear(img)
+            } catch (_: Exception) {}
         }
     }
 
