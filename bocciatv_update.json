@@ -1,6 +1,6 @@
 {
-  "versionCode": 120,
-  "versionName": "5.0",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v5.0/bocciatv.apk",
+  "versionCode": 200,
+  "versionName": "6.0",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v6.0/bocciatv.apk",
   "releaseNotes": "- Nuovo layout integrato del Player con barra inferiore EPG, locandina, seekbar, titolo e pulsanti d'azione completi"
 }
