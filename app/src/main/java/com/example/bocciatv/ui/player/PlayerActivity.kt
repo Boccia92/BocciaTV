@@ -10,7 +10,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
-import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -26,6 +26,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import com.bumptech.glide.Glide
 import com.example.bocciatv.R
 import com.example.bocciatv.data.local.PrefsManager
 import com.example.bocciatv.data.model.EpgResponse
@@ -44,14 +45,6 @@ class PlayerActivity : FragmentActivity() {
     private var ids: List<String> = emptyList()
     private var currentMediaId: String? = null
 
-    // EPG Overlay Views
-    private lateinit var llEpgOverlay: LinearLayout
-    private lateinit var tvEpgChannelName: TextView
-    private lateinit var tvEpgCurrentTitle: TextView
-    private lateinit var tvEpgTime: TextView
-    private lateinit var tvEpgDescription: TextView
-    private lateinit var tvEpgNextTitle: TextView
-
     // Audio normalization (Night Mode)
     private var dynamicsProcessing: DynamicsProcessing? = null
     private var isNightModeActive = false
@@ -62,10 +55,6 @@ class PlayerActivity : FragmentActivity() {
             saveCurrentPosition()
             handler.postDelayed(this, 5000)
         }
-    }
-
-    private val hideEpgRunnable = Runnable {
-        llEpgOverlay.visibility = View.GONE
     }
 
     private fun saveCurrentPosition() {
@@ -105,35 +94,23 @@ class PlayerActivity : FragmentActivity() {
 
         playerView = findViewById(R.id.player_view)
 
-        // EPG Views
-        llEpgOverlay = findViewById(R.id.ll_epg_overlay)
-        tvEpgChannelName = findViewById(R.id.tv_epg_channel_name)
-        tvEpgCurrentTitle = findViewById(R.id.tv_epg_current_title)
-        tvEpgTime = findViewById(R.id.tv_epg_time)
-        tvEpgDescription = findViewById(R.id.tv_epg_description)
-        tvEpgNextTitle = findViewById(R.id.tv_epg_next_title)
+        // Setup custom action button listeners inside the player control overlay
+        val btnZoom = playerView.findViewById<View>(R.id.btn_custom_zoom)
+        btnZoom?.setOnClickListener { showZoomDialog() }
 
-        playerView.setControllerVisibilityListener(object : PlayerView.ControllerVisibilityListener {
-            override fun onVisibilityChanged(visibility: Int) {
-                if (isFinishing || isDestroyed) return
-                if (visibility == View.GONE) {
-                    llEpgOverlay.visibility = View.GONE
-                    handler.removeCallbacks(hideEpgRunnable)
-                } else if (visibility == View.VISIBLE) {
-                    val settingsId = resources.getIdentifier("exo_settings", "id", packageName)
-                    val settingsBtn = if (settingsId != 0) playerView.findViewById<View>(settingsId) else null
-                    settingsBtn?.setOnClickListener { showSettingsMenu() }
-                    llEpgOverlay.visibility = View.VISIBLE
-                }
-            }
-        })
+        val btnSubtitles = playerView.findViewById<View>(R.id.btn_custom_subtitles)
+        btnSubtitles?.setOnClickListener { showSubtitleDialog() }
+
+        val btnSettings = playerView.findViewById<View>(R.id.btn_custom_settings)
+        btnSettings?.setOnClickListener { showSettingsMenu() }
 
         val urlsArray = intent.getStringArrayExtra("urls")
         val idsArray = intent.getStringArrayExtra("ids")
         val startIndex = intent.getIntExtra("index", 0)
         val channelName = intent.getStringExtra("name") ?: "Canale TV"
 
-        tvEpgChannelName.text = channelName
+        val tvTitle = playerView.findViewById<TextView?>(R.id.tv_epg_title)
+        tvTitle?.text = channelName
 
         if (urlsArray == null || idsArray == null) {
             val singleUrl = intent.getStringExtra("url") ?: return
@@ -149,10 +126,9 @@ class PlayerActivity : FragmentActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (llEpgOverlay.visibility == View.VISIBLE || playerView.isControllerFullyVisible) {
+                if (playerView.isControllerFullyVisible) {
                     hideEpgOverlay()
                 } else {
-                    hideEpgOverlay()
                     finish()
                 }
             }
@@ -213,6 +189,22 @@ class PlayerActivity : FragmentActivity() {
     }
 
     private fun loadEpgInfo(streamId: String) {
+        val channelName = intent.getStringExtra("name") ?: "Canale TV"
+        val posterUrl = intent.getStringExtra("poster") ?: intent.getStringExtra("icon")
+
+        val ivPoster = playerView.findViewById<ImageView?>(R.id.iv_epg_poster)
+        val tvTitle = playerView.findViewById<TextView?>(R.id.tv_epg_title)
+        val tvInfo = playerView.findViewById<TextView?>(R.id.tv_epg_info)
+
+        tvTitle?.text = channelName
+        if (!posterUrl.isNullOrEmpty() && ivPoster != null) {
+            Glide.with(this)
+                .load(posterUrl)
+                .placeholder(R.drawable.movie)
+                .error(R.drawable.movie)
+                .into(ivPoster)
+        }
+
         if (streamId == "unknown" || streamId.isEmpty()) return
 
         NetworkModule.api.getShortEpg(prefs.user, prefs.pass, streamId = streamId).enqueue(object : Callback<EpgResponse> {
@@ -223,17 +215,9 @@ class PlayerActivity : FragmentActivity() {
                     val next = listings.getOrNull(1)
 
                     runOnUiThread {
-                        tvEpgCurrentTitle.text = "In onda: ${current.decodedTitle}"
-                        tvEpgTime.text = "${current.start ?: "--:--"} - ${current.end ?: "--:--"}"
-                        tvEpgDescription.text = current.decodedDescription
-
-                        if (next != null) {
-                            tvEpgNextTitle.text = "A seguire: ${next.decodedTitle} (${next.start ?: ""})"
-                            tvEpgNextTitle.visibility = View.VISIBLE
-                        } else {
-                            tvEpgNextTitle.visibility = View.GONE
-                        }
-
+                        val currentText = "In onda: ${current.decodedTitle} (${current.start ?: "--:--"} - ${current.end ?: "--:--"})"
+                        val nextText = if (next != null) " | A seguire: ${next.decodedTitle}" else ""
+                        tvInfo?.text = "$currentText$nextText"
                         showEpgOverlay()
                     }
                 }
@@ -247,16 +231,11 @@ class PlayerActivity : FragmentActivity() {
 
     private fun showEpgOverlay() {
         if (isFinishing || isDestroyed) return
-        llEpgOverlay.visibility = View.VISIBLE
         playerView.showController()
-        handler.removeCallbacks(hideEpgRunnable)
-        handler.postDelayed(hideEpgRunnable, 5000)
     }
 
     private fun hideEpgOverlay() {
-        llEpgOverlay.visibility = View.GONE
         playerView.hideController()
-        handler.removeCallbacks(hideEpgRunnable)
     }
 
     private fun applyNightMode(active: Boolean) {
@@ -420,8 +399,6 @@ class PlayerActivity : FragmentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         saveCurrentPosition()
-        handler.removeCallbacks(progressUpdater)
-        handler.removeCallbacks(hideEpgRunnable)
         dynamicsProcessing?.release()
         player?.release()
         player = null
@@ -429,9 +406,6 @@ class PlayerActivity : FragmentActivity() {
 
     override fun onPause() {
         super.onPause()
-        handler.removeCallbacks(hideEpgRunnable)
-        llEpgOverlay.visibility = View.GONE
-        playerView.hideController()
         saveCurrentPosition()
         player?.pause()
     }

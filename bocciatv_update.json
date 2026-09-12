@@ -1,6 +1,6 @@
 {
-  "versionCode": 111,
-  "versionName": "4.1",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v4.1/bocciatv.apk",
-  "releaseNotes": "- Migliorata la leggibilita dei nomi dei canali con sfondo ad alto contrasto e testo in grassetto"
+  "versionCode": 120,
+  "versionName": "5.0",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v5.0/bocciatv.apk",
+  "releaseNotes": "- Nuovo layout integrato del Player con barra inferiore EPG, locandina, seekbar, titolo e pulsanti d'azione completi"
 }
