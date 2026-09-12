@@ -143,10 +143,21 @@ class ContentActivity : FragmentActivity() {
                     isFocused && isSelected -> {
                         v.setBackgroundResource(R.drawable.category_focused_active_bg)
                         tv.setTextColor(Color.BLACK)
+                        
+                        // Solo se NON stiamo gia ricaricando o cercando
+                        if (currentCatId != item.id) {
+                            currentCatId = item.id
+                            v.post { applyFilters(focusStreams = false) }
+                        }
                     }
                     isFocused -> {
                         v.setBackgroundResource(R.drawable.category_focused_bg)
                         tv.setTextColor(Color.BLACK)
+                        
+                        if (currentCatId != item.id) {
+                            currentCatId = item.id
+                            v.post { applyFilters(focusStreams = false) }
+                        }
                     }
                     isSelected -> {
                         v.setBackgroundResource(R.drawable.category_active_bg)
@@ -159,10 +170,8 @@ class ContentActivity : FragmentActivity() {
                 }
             },
             onClick = { item ->
-                currentCatId = item.id
-                findViewById<EditText>(R.id.et_search).text.clear()
-                catAdapter.notifyDataSetChanged()
-                applyFilters(focusStreams = true)
+                val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
+                rvStreams.requestFocus()
             },
             enableZoom = false
         )

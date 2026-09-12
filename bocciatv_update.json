@@ -1,6 +1,6 @@
 {
-  "versionCode": 310,
-  "versionName": "13.2",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.2/bocciatv.apk",
-  "releaseNotes": "- Spostamento automatico del cursore/focus all'interno della lista contenuti quando si clicca una categoria"
+  "versionCode": 320,
+  "versionName": "13.3",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.3/bocciatv.apk",
+  "releaseNotes": "- Ripristinato il comportamento originale delle categorie (il cursore non salta piu automaticamente, per spostarsi nella griglia bisogna premere OK o Destra)"
 }
