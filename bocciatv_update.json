@@ -1,6 +1,6 @@
 {
-  "versionCode": 110,
-  "versionName": "4.0",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v4.0/bocciatv.apk",
-  "releaseNotes": "- Ridimensionate le locandine/banner dei canali e contenuti e compattata la barra laterale delle categorie"
+  "versionCode": 111,
+  "versionName": "4.1",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v4.1/bocciatv.apk",
+  "releaseNotes": "- Migliorata la leggibilita dei nomi dei canali con sfondo ad alto contrasto e testo in grassetto"
 }
