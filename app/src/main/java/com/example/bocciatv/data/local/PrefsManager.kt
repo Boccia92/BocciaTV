@@ -20,6 +20,10 @@ class PrefsManager(context: Context) {
         get() = prefs.getString("exp_date", "") ?: ""
         set(v) = prefs.edit().putString("exp_date", v).apply()
 
+    var lastDismissedVersion: Int
+        get() = prefs.getInt("last_dismissed_version", 0)
+        set(v) = prefs.edit().putInt("last_dismissed_version", v).apply()
+
     fun savePosition(id: String, position: Long) {
         if (id == "unknown") return
         prefs.edit().putLong("pos_$id", position).apply()

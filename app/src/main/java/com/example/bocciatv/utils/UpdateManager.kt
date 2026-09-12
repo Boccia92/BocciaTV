@@ -12,6 +12,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
+import com.example.bocciatv.data.local.PrefsManager
 import com.example.bocciatv.data.model.UpdateInfo
 import com.google.gson.Gson
 import okhttp3.Call
@@ -70,11 +71,16 @@ object UpdateManager {
                 try {
                     val updateInfo = Gson().fromJson(body, UpdateInfo::class.java)
                     val currentVersion = getCurrentVersionCode(activity)
+                    val prefs = PrefsManager(activity)
 
                     if (updateInfo != null && updateInfo.versionCode > currentVersion) {
+                        if (isSilent && updateInfo.versionCode <= prefs.lastDismissedVersion) {
+                            // Skipped by user previously
+                            return
+                        }
                         activity.runOnUiThread {
                             if (!activity.isFinishing && !activity.isDestroyed) {
-                                showUpdateDialog(activity, updateInfo)
+                                showUpdateDialog(activity, updateInfo, prefs)
                             }
                         }
                     } else if (!isSilent) {
@@ -94,13 +100,16 @@ object UpdateManager {
         })
     }
 
-    private fun showUpdateDialog(activity: FragmentActivity, update: UpdateInfo) {
+    private fun showUpdateDialog(activity: FragmentActivity, update: UpdateInfo, prefs: PrefsManager) {
         val versionDisplay = update.versionName ?: "v${update.versionCode}"
         AlertDialog.Builder(activity, R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("Nuovo Aggiornamento!")
             .setMessage("È disponibile la versione $versionDisplay.\n\nNovità:\n${update.releaseNotes}")
             .setPositiveButton("Aggiorna") { _, _ ->
                 downloadAndInstallApk(activity, update.apkUrl)
+            }
+            .setNeutralButton("Ignora") { _, _ ->
+                prefs.lastDismissedVersion = update.versionCode
             }
             .setNegativeButton("Più tardi", null)
             .setCancelable(true)

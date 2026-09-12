@@ -1,6 +1,6 @@
 {
-  "versionCode": 350,
-  "versionName": "13.6",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.6/bocciatv.apk",
-  "releaseNotes": "- Risolto in modo definitivo il bug del cursore: ora al clic si aggiornano i canali ed il cursore entra correttamente nella griglia destra senza scappare verso i Preferiti."
+  "versionCode": 360,
+  "versionName": "13.7",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.7/bocciatv.apk",
+  "releaseNotes": "- Aggiunto il tasto 'Ignora' alla finestra di aggiornamento: premendolo, l'avviso di aggiornamento non verra piu riproposto in automatico ad ogni avvio (ma potra sempre essere scaricato dalle Impostazioni)."
 }
