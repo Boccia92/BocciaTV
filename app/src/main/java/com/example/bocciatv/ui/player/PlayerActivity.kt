@@ -115,6 +115,7 @@ class PlayerActivity : FragmentActivity() {
 
         playerView.setControllerVisibilityListener(object : PlayerView.ControllerVisibilityListener {
             override fun onVisibilityChanged(visibility: Int) {
+                if (isFinishing || isDestroyed) return
                 if (visibility == View.GONE) {
                     llEpgOverlay.visibility = View.GONE
                     handler.removeCallbacks(hideEpgRunnable)
@@ -151,8 +152,8 @@ class PlayerActivity : FragmentActivity() {
                 if (llEpgOverlay.visibility == View.VISIBLE || playerView.isControllerFullyVisible) {
                     hideEpgOverlay()
                 } else {
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
+                    hideEpgOverlay()
+                    finish()
                 }
             }
         })
@@ -245,6 +246,7 @@ class PlayerActivity : FragmentActivity() {
     }
 
     private fun showEpgOverlay() {
+        if (isFinishing || isDestroyed) return
         llEpgOverlay.visibility = View.VISIBLE
         playerView.showController()
         handler.removeCallbacks(hideEpgRunnable)
@@ -427,6 +429,9 @@ class PlayerActivity : FragmentActivity() {
 
     override fun onPause() {
         super.onPause()
+        handler.removeCallbacks(hideEpgRunnable)
+        llEpgOverlay.visibility = View.GONE
+        playerView.hideController()
         saveCurrentPosition()
         player?.pause()
     }
