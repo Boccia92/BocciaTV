@@ -3,27 +3,27 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp"
+    android:padding="4dp"
     android:gravity="center"
     android:focusable="true"
     android:background="@drawable/card_background">
 
     <ImageView
         android:id="@+id/iv_thumb"
-        android:layout_width="140dp"
-        android:layout_height="200dp"
+        android:layout_width="105dp"
+        android:layout_height="145dp"
         android:scaleType="centerCrop"
         android:background="#33FFFFFF"/>
 
     <TextView
         android:id="@+id/tv_name"
-        android:layout_width="140dp"
+        android:layout_width="105dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="2"
         android:textColor="@android:color/white"
-        android:textSize="14sp"/>
+        android:textSize="12sp"/>
 
 </LinearLayout>

@@ -237,7 +237,7 @@ class ContentActivity : FragmentActivity() {
                 applyFilters()
             }
         })
-        rvStreams.layoutManager = GridLayoutManager(this, if (type == TYPE_LIVE) 4 else 5)
+        rvStreams.layoutManager = GridLayoutManager(this, if (type == TYPE_LIVE) 5 else 6)
         rvStreams.adapter = streamAdapter
     }
 
