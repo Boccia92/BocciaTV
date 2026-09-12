@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.FragmentActivity
 import androidx.media3.common.util.UnstableApi
 import com.example.bocciatv.data.local.PrefsManager
@@ -69,6 +70,20 @@ class MainActivity : FragmentActivity() {
 
         // Check for app updates on startup
         UpdateManager.checkForUpdates(this, isSilent = true)
+
+        // Exit confirmation dialog
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                    .setTitle("Esci")
+                    .setMessage("Vuoi uscire dall'applicazione?")
+                    .setPositiveButton("Sì") { _, _ ->
+                        finishAffinity()
+                    }
+                    .setNegativeButton("No", null)
+                    .show()
+            }
+        })
     }
 
     override fun onResume() {
