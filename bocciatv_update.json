@@ -1,6 +1,6 @@
 {
-  "versionCode": 230,
-  "versionName": "9.0",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v9.0/bocciatv.apk",
-  "releaseNotes": "- Transizioni istantanee tra la lista dei canali e il Player senza alcun fermo immagine o lampo del canale precedente"
+  "versionCode": 240,
+  "versionName": "10.0",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v10.0/bocciatv.apk",
+  "releaseNotes": "- Versione finale ottimizzata: controlli D-pad completi, layout player integrato, zero flash e massima fluidita su Fire TV Stick"
 }

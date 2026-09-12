@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
+import androidx.media3.common.util.UnstableApi
 import com.example.bocciatv.data.local.PrefsManager
 import com.example.bocciatv.data.model.UserAuth
 import com.example.bocciatv.data.network.NetworkModule
@@ -21,6 +22,7 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
 
+@UnstableApi
 class MainActivity : FragmentActivity() {
     private lateinit var prefs: PrefsManager
     private lateinit var tvExp: TextView

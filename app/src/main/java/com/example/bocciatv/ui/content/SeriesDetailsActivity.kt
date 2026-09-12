@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bocciatv.R
@@ -19,6 +20,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.Locale
 
+@UnstableApi
 class SeriesDetailsActivity : FragmentActivity() {
 
     private lateinit var prefs: PrefsManager
