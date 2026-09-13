@@ -2,15 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
     <uses-feature
+        android:name="android.hardware.faketouch"
+        android:required="false" />
+    <uses-feature
         android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.screen.landscape"
         android:required="false" />
 
     <application
@@ -27,7 +31,7 @@
         <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true"
-            android:screenOrientation="landscape">
+            android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -38,32 +42,32 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.content.ContentActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.content.SeriesDetailsActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.speedtest.SpeedTestActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.player.PlayerActivity"
             android:exported="false"
-            android:screenOrientation="landscape"
+            android:screenOrientation="sensorLandscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
 
         <provider

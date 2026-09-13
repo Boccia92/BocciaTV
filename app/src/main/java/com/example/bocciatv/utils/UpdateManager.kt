@@ -106,6 +106,7 @@ object UpdateManager {
             .setTitle("Nuovo Aggiornamento!")
             .setMessage("È disponibile la versione $versionDisplay.\n\nNovità:\n${update.releaseNotes}")
             .setPositiveButton("Aggiorna") { _, _ ->
+                prefs.lastDismissedVersion = update.versionCode
                 downloadAndInstallApk(activity, update.apkUrl)
             }
             .setNeutralButton("Ignora") { _, _ ->
@@ -247,7 +248,8 @@ object UpdateManager {
                 @Suppress("DEPRECATION")
                 pInfo.versionCode
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting current version code: ${e.message}")
             1
         }
     }
