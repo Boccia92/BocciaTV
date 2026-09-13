@@ -1,6 +1,6 @@
 {
-  "versionCode": 370,
-  "versionName": "13.8",
-  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.8/bocciatv.apk",
-  "releaseNotes": "- Risolto il bug degli aggiornamenti in loop infinito causato da un errore della cache del pacchetto di installazione."
+  "versionCode": 380,
+  "versionName": "13.9",
+  "apkUrl": "https://github.com/Boccia92/BocciaTV/releases/download/v13.9/bocciatv.apk",
+  "releaseNotes": "- Ottimizzazione compatibilità universale per Amazon Fire TV, Android TV, Smart TV Box, CarPlay Box e smartphone vecchi e nuovi.\n- Risolto definitivamente il loop di aggiornamento."
 }
