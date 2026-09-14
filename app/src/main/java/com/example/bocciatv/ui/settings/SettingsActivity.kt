@@ -43,11 +43,13 @@ class SettingsActivity : FragmentActivity() {
             finish()
         }
 
+        findViewById<Button>(R.id.btn_check_update).setOnClickListener {
+            Toast.makeText(this, "Controllo aggiornamenti in corso...", Toast.LENGTH_SHORT).show()
+            UpdateManager.checkForUpdates(this, isSilent = false)
+        }
+
         findViewById<Button>(R.id.btn_back).setOnClickListener {
             finish()
         }
-
-        Toast.makeText(this, "Controllo aggiornamenti...", Toast.LENGTH_SHORT).show()
-        UpdateManager.checkForUpdates(this, isSilent = false)
     }
 }
