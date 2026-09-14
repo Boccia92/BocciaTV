@@ -40,11 +40,13 @@ object UpdateManager {
         .build()
 
     fun checkForUpdates(activity: FragmentActivity, isSilent: Boolean = true) {
-        val urlWithTimestamp = "$UPDATE_URL?t=${System.currentTimeMillis()}"
+        val urlWithTimestamp = "$UPDATE_URL?t=${System.currentTimeMillis()}&nocache=${Math.random()}"
         val request = Request.Builder()
             .url(urlWithTimestamp)
             .header("User-Agent", USER_AGENT)
-            .header("Cache-Control", "no-cache, no-store")
+            .header("Cache-Control", "no-cache, no-store, must-revalidate")
+            .header("Pragma", "no-cache")
+            .header("Expires", "0")
             .build()
 
         client.newCall(request).enqueue(object : Callback {
