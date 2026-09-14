@@ -7,7 +7,7 @@
 
     <!-- Left: Categories -->
     <LinearLayout
-        android:layout_width="220dp"
+        android:layout_width="280dp"
         android:layout_height="match_parent"
         android:background="#22FFFFFF"
         android:orientation="vertical"

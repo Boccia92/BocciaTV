@@ -9,9 +9,9 @@
     android:paddingBottom="10dp"
     android:layout_marginBottom="4dp"
     android:textColor="@android:color/white"
-    android:textSize="15sp"
+    android:textSize="14sp"
     android:textStyle="bold"
     android:focusable="true"
     android:clickable="true"
-    android:singleLine="true"
+    android:maxLines="2"
     android:ellipsize="end"/>

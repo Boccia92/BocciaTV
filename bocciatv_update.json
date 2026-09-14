@@ -1,6 +1,6 @@
 {
-  "versionCode": 385,
-  "versionName": "14.4",
+  "versionCode": 386,
+  "versionName": "14.5",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Protocollo OTA standardizzato con headers anti-cache aggressivi (Pragma, Expires, Cache-Control, token random).\n- Ordinamento A-Z manuale e Voice Boost attivo.\n- Stabilità e affidabilità di aggiornamento garantite."
+  "releaseNotes": "- Ottimizzata la barra laterale sinistra delle categorie (aumentata larghezza e supporto a testi su 2 righe per nomi lunghi).\n- Protocollo OTA anti-cache e ordinamento A-Z manuale.\n- Stabilità generale."
 }
