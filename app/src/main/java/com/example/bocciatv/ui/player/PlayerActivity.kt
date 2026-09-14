@@ -70,9 +70,15 @@ class PlayerActivity : FragmentActivity() {
     private val progressUpdater = object : Runnable {
         override fun run() {
             saveCurrentPosition()
-            handler.postDelayed(this, 5000)
+            checkIntroAndBingeWatching()
+            handler.postDelayed(this, 1000)
         }
     }
+
+    private var introStartTime: Long = 5000L
+    private var introEndTime: Long = 90000L
+    private var hasSkippedIntro = false
+    private var isBingeActive = false
 
     private fun saveCurrentPosition() {
         player?.let {
@@ -159,6 +165,21 @@ class PlayerActivity : FragmentActivity() {
                 btnReminder.text = "🔔 Annulla"
                 Toast.makeText(this, "Promemoria impostato per: $title", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        val btnSkipIntro = findViewById<Button>(R.id.btn_skip_intro)
+        btnSkipIntro?.setOnClickListener {
+            val player = player ?: return@setOnClickListener
+            val targetPos = if (introEndTime > player.currentPosition) introEndTime else player.currentPosition + 85000L
+            player.seekTo(targetPos)
+            hasSkippedIntro = true
+            btnSkipIntro.visibility = View.GONE
+            Toast.makeText(this, "Sigla saltata", Toast.LENGTH_SHORT).show()
+        }
+
+        val btnPlayNext = findViewById<Button>(R.id.btn_play_next_episode)
+        btnPlayNext?.setOnClickListener {
+            playNextEpisodeOrFinish()
         }
 
         val urlsArray = intent.getStringArrayExtra("urls")
@@ -669,6 +690,55 @@ class PlayerActivity : FragmentActivity() {
         player?.stop()
         player?.release()
         player = null
+    }
+
+    private fun checkIntroAndBingeWatching() {
+        val player = player ?: return
+        val pos = player.currentPosition
+        val duration = player.duration
+
+        // 1. Skip Intro Logic
+        val btnSkipIntro = findViewById<Button>(R.id.btn_skip_intro)
+        if (!hasSkippedIntro && pos >= introStartTime && pos <= introEndTime) {
+            btnSkipIntro?.visibility = View.VISIBLE
+        } else {
+            btnSkipIntro?.visibility = View.GONE
+        }
+
+        // 2. Next Episode / Binge Watching Logic
+        val llBinge = findViewById<View>(R.id.ll_next_episode_overlay)
+        val tvCountdown = findViewById<TextView>(R.id.tv_next_episode_countdown)
+
+        if (duration > 0 && (duration - pos) <= 40000L) {
+            val secondsLeft = ((duration - pos) / 1000).coerceAtLeast(0)
+            tvCountdown?.text = "Prossimo episodio in ${secondsLeft}s..."
+            if (llBinge?.visibility != View.VISIBLE) {
+                llBinge?.visibility = View.VISIBLE
+                llBinge?.requestFocus()
+            }
+
+            if (secondsLeft <= 1 && !isBingeActive) {
+                isBingeActive = true
+                playNextEpisodeOrFinish()
+            }
+        } else {
+            if (llBinge?.visibility == View.VISIBLE && !isBingeActive) {
+                llBinge?.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun playNextEpisodeOrFinish() {
+        val player = player ?: return
+        if (player.hasNextMediaItem()) {
+            player.seekToNextMediaItem()
+            hasSkippedIntro = false
+            isBingeActive = false
+            findViewById<View>(R.id.ll_next_episode_overlay)?.visibility = View.GONE
+            Toast.makeText(this, "Riproduzione prossimo episodio...", Toast.LENGTH_SHORT).show()
+        } else {
+            finish()
+        }
     }
 
     override fun onPause() {

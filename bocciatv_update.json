@@ -1,6 +1,6 @@
 {
-  "versionCode": 390,
-  "versionName": "14.9",
+  "versionCode": 391,
+  "versionName": "15.0",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Aggiunto il selettore di focus visivo ('button_selector') al pulsante A-Z per evidenziarlo correttamente quando selezionato con il telecomando.\n- Ottimizzazioni generali e stabilità."
+  "releaseNotes": "- Implementato il sistema intelligente 'Salta Sigla' (Intro Skip) nei primi secondi di riproduzione.\n- Implementato il Binge Watching automatico 'Prossimo Episodio' negli ultimi 40 secondi con conto alla rovescia e riproduzione automatica della puntata successiva.\n- Ottimizzazioni e stabilità (v15.0)."
 }
