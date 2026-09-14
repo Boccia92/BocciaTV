@@ -1,6 +1,6 @@
 {
-  "versionCode": 386,
-  "versionName": "14.5",
+  "versionCode": 387,
+  "versionName": "14.6",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ottimizzata la barra laterale sinistra delle categorie (aumentata larghezza e supporto a testi su 2 righe per nomi lunghi).\n- Protocollo OTA anti-cache e ordinamento A-Z manuale.\n- Stabilità generale."
+  "releaseNotes": "- Controllo aggiornamenti OTA esteso anche al ritorno in primo piano (onResume).\n- Corretta la visualizzazione dei nomi lunghi delle categorie (fino a 2 righe e pannello allargato a 280dp).\n- Ordinamento A-Z manuale e Voice Boost attivo."
 }

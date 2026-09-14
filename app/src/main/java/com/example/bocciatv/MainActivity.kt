@@ -89,6 +89,7 @@ class MainActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
         findViewById<Button>(R.id.btn_live)?.requestFocus()
+        UpdateManager.checkForUpdates(this, isSilent = true)
     }
 
     private fun showRefreshDialogAndExecute() {
