@@ -1,6 +1,6 @@
 {
-  "versionCode": 381,
-  "versionName": "14.0",
+  "versionCode": 382,
+  "versionName": "14.1",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Miglioramento significativo della qualità delle immagini e delle miniature video in tutte le categorie (risoluzione originale e colori ARGB_8888).\n- Ottimizzazioni generali e stabilità."
+  "releaseNotes": "- Aggiunto il toggle 'Voice Boost' nel menu impostazioni del player (LoudnessEnhancer +500mB per esaltare i dialoghi).\n- Migliorata la qualità delle immagini video in tutte le categorie.\n- Ottimizzazioni generali e stabilità."
 }

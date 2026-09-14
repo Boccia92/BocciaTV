@@ -24,6 +24,10 @@ class PrefsManager(context: Context) {
         get() = prefs.getInt("last_dismissed_version", 0)
         set(v) = prefs.edit().putInt("last_dismissed_version", v).apply()
 
+    var isVoiceBoost: Boolean
+        get() = prefs.getBoolean("voice_boost", false)
+        set(v) = prefs.edit().putBoolean("voice_boost", v).apply()
+
     fun savePosition(id: String, position: Long) {
         if (id == "unknown") return
         prefs.edit().putLong("pos_$id", position).apply()

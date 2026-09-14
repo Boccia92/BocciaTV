@@ -2,6 +2,7 @@ package com.example.bocciatv.ui.player
 
 import android.app.AlertDialog
 import android.media.audiofx.DynamicsProcessing
+import android.media.audiofx.LoudnessEnhancer
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -48,9 +49,11 @@ class PlayerActivity : FragmentActivity() {
     private var ids: List<String> = emptyList()
     private var currentMediaId: String? = null
 
-    // Audio normalization (Night Mode)
+    // Audio normalization (Night Mode) & Voice Boost
     private var dynamicsProcessing: DynamicsProcessing? = null
     private var isNightModeActive = false
+    private var loudnessEnhancer: LoudnessEnhancer? = null
+    private var isVoiceBoostActive = false
 
     private val handler = Handler(Looper.getMainLooper())
     private val progressUpdater = object : Runnable {
@@ -94,6 +97,7 @@ class PlayerActivity : FragmentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_player)
         prefs = PrefsManager(this)
+        isVoiceBoostActive = prefs.isVoiceBoost
 
         playerView = findViewById(R.id.player_view)
 
@@ -175,6 +179,15 @@ class PlayerActivity : FragmentActivity() {
             it.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     if (state == Player.STATE_READY) {
+                        val sessionId = it.audioSessionId
+                        if (sessionId != C.AUDIO_SESSION_ID_UNSET) {
+                            if (isVoiceBoostActive && loudnessEnhancer == null) {
+                                applyVoiceBoost(true)
+                            }
+                            if (isNightModeActive && dynamicsProcessing == null) {
+                                applyNightMode(true)
+                            }
+                        }
                         val index = it.currentMediaItemIndex
                         if (index < ids.size) {
                             val newId = ids[index]
@@ -306,12 +319,38 @@ class PlayerActivity : FragmentActivity() {
         }
     }
 
+    private fun applyVoiceBoost(active: Boolean) {
+        try {
+            val sessionId = player?.audioSessionId ?: return
+            if (sessionId == C.AUDIO_SESSION_ID_UNSET) return
+
+            if (active) {
+                if (loudnessEnhancer == null) {
+                    loudnessEnhancer = LoudnessEnhancer(sessionId)
+                }
+                loudnessEnhancer?.setTargetGain(500) // +500mB (+5 dB) for voice boost
+                loudnessEnhancer?.enabled = true
+                isVoiceBoostActive = true
+                prefs.isVoiceBoost = true
+                Toast.makeText(this, "Voice Boost Attivo (+500mB)", Toast.LENGTH_SHORT).show()
+            } else {
+                loudnessEnhancer?.enabled = false
+                isVoiceBoostActive = false
+                prefs.isVoiceBoost = false
+                Toast.makeText(this, "Voice Boost Disattivato", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e("BocciaTV", "Error applying Voice Boost", e)
+        }
+    }
+
     private fun showSettingsMenu() {
         val options = arrayOf(
             "Sottotitoli",
             "Velocità Riproduzione",
             "Zoom Video",
-            if (isNightModeActive) "Disattiva Modalità Notte" else "Attiva Modalità Notte"
+            if (isNightModeActive) "Disattiva Modalità Notte" else "Attiva Modalità Notte",
+            if (isVoiceBoostActive) "Disattiva Voice Boost" else "Attiva Voice Boost"
         )
         AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("Impostazioni Video")
@@ -321,6 +360,7 @@ class PlayerActivity : FragmentActivity() {
                     1 -> showSpeedDialog()
                     2 -> showZoomDialog()
                     3 -> applyNightMode(!isNightModeActive)
+                    4 -> applyVoiceBoost(!isVoiceBoostActive)
                 }
             }
             .show()
@@ -443,6 +483,10 @@ class PlayerActivity : FragmentActivity() {
     override fun finish() {
         playerView.hideController()
         playerView.player = null
+        try {
+            loudnessEnhancer?.release()
+            loudnessEnhancer = null
+        } catch (_: Exception) {}
         player?.stop()
         player?.release()
         player = null
@@ -456,6 +500,10 @@ class PlayerActivity : FragmentActivity() {
         saveCurrentPosition()
         dynamicsProcessing?.release()
         dynamicsProcessing = null
+        try {
+            loudnessEnhancer?.release()
+            loudnessEnhancer = null
+        } catch (_: Exception) {}
         playerView.hideController()
         playerView.player = null
         player?.stop()
