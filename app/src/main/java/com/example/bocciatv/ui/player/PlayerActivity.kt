@@ -35,7 +35,11 @@ import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.bocciatv.R
 import com.example.bocciatv.data.local.PrefsManager
+import com.example.bocciatv.data.model.EpgProgram
 import com.example.bocciatv.data.model.EpgResponse
+import com.example.bocciatv.ui.adapter.GenericAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.bocciatv.data.network.NetworkModule
 import com.example.bocciatv.utils.DisplayUtils
 import retrofit2.Call
@@ -117,6 +121,11 @@ class PlayerActivity : FragmentActivity() {
 
         val btnSettings = playerView.findViewById<View>(R.id.btn_custom_settings)
         btnSettings?.setOnClickListener { showSettingsMenu() }
+
+        val btnEpgGuide = playerView.findViewById<Button>(R.id.btn_epg_guide)
+        btnEpgGuide?.setOnClickListener {
+            showFullEpgDialog()
+        }
 
         val btnReminder = playerView.findViewById<Button>(R.id.btn_reminder)
         btnReminder?.setOnClickListener {
@@ -323,6 +332,103 @@ class PlayerActivity : FragmentActivity() {
                 Log.e("BocciaTV", "EPG fetch error: ${t.message}")
             }
         })
+    }
+
+    private fun showFullEpgDialog() {
+        val streamId = currentMediaId ?: return
+        if (streamId == "unknown" || streamId.isEmpty()) {
+            Toast.makeText(this, "EPG non disponibile per questo canale", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        Toast.makeText(this, "Caricamento Guida EPG...", Toast.LENGTH_SHORT).show()
+
+        NetworkModule.api.getSimpleDataTable(prefs.user, prefs.pass, streamId = streamId).enqueue(object : Callback<EpgResponse> {
+            override fun onResponse(call: Call<EpgResponse>, response: Response<EpgResponse>) {
+                val listings = response.body()?.epgListings ?: emptyList()
+                if (listings.isEmpty()) {
+                    runOnUiThread {
+                        Toast.makeText(this@PlayerActivity, "Nessun programma EPG trovato", Toast.LENGTH_SHORT).show()
+                    }
+                    return
+                }
+
+                runOnUiThread {
+                    showEpgDialogUi(listings)
+                }
+            }
+
+            override fun onFailure(call: Call<EpgResponse>, t: Throwable) {
+                runOnUiThread {
+                    Toast.makeText(this@PlayerActivity, "Errore caricamento EPG", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+    }
+
+    private fun showEpgDialogUi(listings: List<EpgProgram>) {
+        val rv = RecyclerView(this).apply {
+            layoutManager = LinearLayoutManager(this@PlayerActivity)
+            setPadding(24, 24, 24, 24)
+            clipToPadding = false
+        }
+
+        val adapter = GenericAdapter<EpgProgram>(
+            layoutId = R.layout.item_epg_program,
+            bind = { v, item ->
+                val tvTime = v.findViewById<TextView>(R.id.tv_epg_time)
+                val tvTitle = v.findViewById<TextView>(R.id.tv_epg_prog_title)
+                val tvDesc = v.findViewById<TextView>(R.id.tv_epg_prog_desc)
+                val btnItemReminder = v.findViewById<Button>(R.id.btn_item_reminder)
+
+                tvTime.text = "${item.start ?: "--:--"} - ${item.end ?: "--:--"}"
+                tvTitle.text = item.decodedTitle
+                tvDesc.text = item.decodedDescription
+
+                val eventId = item.id ?: "${currentMediaId}_${item.decodedTitle}"
+                val isSet = prefs.isReminderSet(eventId)
+                btnItemReminder.text = if (isSet) "🔔 Annulla" else "🔔 Ricorda"
+
+                btnItemReminder.setOnClickListener {
+                    val rawTs = item.startTimestamp ?: 0L
+                    val startTime = if (rawTs > 10000000000L) rawTs else rawTs * 1000
+                    val channelName = intent.getStringExtra("name") ?: "Canale TV"
+                    val streamUrl = intent.getStringExtra("url") ?: ""
+                    val currentId = currentMediaId ?: "unknown"
+
+                    if (prefs.isReminderSet(eventId)) {
+                        ReminderScheduler.cancelReminder(this, eventId)
+                        btnItemReminder.text = "🔔 Ricorda"
+                        Toast.makeText(this, "Promemoria rimosso", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val reminderItem = ReminderItem(
+                            eventId = eventId,
+                            programTitle = item.decodedTitle,
+                            channelId = currentId,
+                            channelName = channelName,
+                            streamUrl = streamUrl,
+                            startTimeMillis = if (startTime > 0) startTime else System.currentTimeMillis() + 3600000
+                        )
+                        ReminderScheduler.scheduleReminder(this, reminderItem)
+                        btnItemReminder.text = "🔔 Annulla"
+                        Toast.makeText(this, "Promemoria impostato per: ${item.decodedTitle}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            onClick = { program ->
+                Toast.makeText(this, program.decodedTitle, Toast.LENGTH_SHORT).show()
+            },
+            enableZoom = false
+        )
+
+        rv.adapter = adapter
+        adapter.update(listings)
+
+        AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setTitle("Guida EPG - ${intent.getStringExtra("name") ?: "Canale TV"}")
+            .setView(rv)
+            .setPositiveButton("Chiudi", null)
+            .show()
     }
 
     private fun showEpgOverlay() {

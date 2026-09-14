@@ -43,4 +43,12 @@ interface XtreamService {
         @Query("stream_id") streamId: String,
         @Query("limit") limit: Int = 5
     ): Call<EpgResponse>
+
+    @GET("player_api.php")
+    fun getSimpleDataTable(
+        @Query("username") user: String,
+        @Query("password") pass: String,
+        @Query("action") action: String = "get_simple_data_table",
+        @Query("stream_id") streamId: String
+    ): Call<EpgResponse>
 }

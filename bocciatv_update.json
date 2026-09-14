@@ -1,6 +1,6 @@
 {
-  "versionCode": 388,
-  "versionName": "14.7",
+  "versionCode": 389,
+  "versionName": "14.8",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Implementato il sistema di Promemoria Programmi EPG con AlarmManager e persistenza.\n- Pulsante 'Ricorda' / 'Annulla' nel player per programmi futuri e notifiche di promemoria.\n- Ottimizzazioni e stabilità."
+  "releaseNotes": "- Implementata la Guida EPG Completa giornaliera tramite l'API 'get_simple_data_table'.\n- RecyclerView scorrevole con telecomando per navigare tra tutti i programmi passati e futuri del canale.\n- Possibilità di impostare promemoria su ciascun programma.\n- Stabilità generale."
 }

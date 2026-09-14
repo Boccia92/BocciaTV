@@ -129,6 +129,19 @@
                 android:orientation="horizontal">
 
                 <Button
+                    android:id="@+id/btn_epg_guide"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:backgroundTint="#33FFFFFF"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:text="📺 Guida TV"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:paddingHorizontal="10dp"/>
+
+                <Button
                     android:id="@+id/btn_reminder"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
