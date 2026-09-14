@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -51,6 +52,7 @@ class ContentActivity : FragmentActivity() {
     private var masterList = emptyList<StreamItem>()
     private var currentCatId: String? = CAT_FAVORITES
     private var currentSearch: String = ""
+    private var isAlphabeticalSort = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val locale = Locale.ITALY
@@ -72,6 +74,15 @@ class ContentActivity : FragmentActivity() {
 
         setupLists()
         setupSearch()
+        
+        val btnSort = findViewById<Button>(R.id.btn_sort)
+        btnSort.setOnClickListener {
+            isAlphabeticalSort = !isAlphabeticalSort
+            btnSort.text = if (isAlphabeticalSort) "AZ (On)" else "A-Z"
+            btnSort.setBackgroundColor(if (isAlphabeticalSort) Color.parseColor("#4CAF50") else Color.parseColor("#33FFFFFF"))
+            applyFilters()
+        }
+
         loadCategories()
         loadAllContent()
     }
@@ -100,7 +111,7 @@ class ContentActivity : FragmentActivity() {
         val currentType = type
 
         Thread {
-            val filtered = if (search.isNotEmpty()) {
+            var filtered = if (search.isNotEmpty()) {
                 masterList.filter { it.name?.contains(search, ignoreCase = true) == true }
             } else if (catId == CAT_FAVORITES) {
                 val favIds = prefs.getFavorites(currentType)
@@ -118,6 +129,11 @@ class ContentActivity : FragmentActivity() {
             } else {
                 masterList
             }
+
+            if (isAlphabeticalSort) {
+                filtered = filtered.sortedBy { it.name?.lowercase() ?: "" }
+            }
+
             runOnUiThread {
                 streamAdapter.update(filtered)
                 if (focusStreams) {
@@ -297,7 +313,7 @@ class ContentActivity : FragmentActivity() {
             override fun onResponse(call: Call<List<StreamItem>>, response: Response<List<StreamItem>>) {
                 val body = response.body()
                 if (response.isSuccessful && body != null) {
-                    masterList = body.sortedBy { it.name?.lowercase() ?: "" }
+                    masterList = body
                     runOnUiThread { applyFilters() }
                 } else {
                     runOnUiThread {

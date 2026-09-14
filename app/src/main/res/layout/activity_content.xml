@@ -43,7 +43,7 @@
 
             <EditText
                 android:id="@+id/et_search"
-                android:layout_width="240dp"
+                android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:hint="Cerca..."
                 android:textColor="@android:color/white"
@@ -56,6 +56,20 @@
                 android:nextFocusLeft="@id/rv_cats"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"/>
+
+            <Button
+                android:id="@+id/btn_sort"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@id/et_search"
+                android:layout_centerVertical="true"
+                android:backgroundTint="#33FFFFFF"
+                android:text="A-Z"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:paddingHorizontal="12dp"
+                android:focusable="true"/>
 
             <TextClock
                 android:layout_width="wrap_content"

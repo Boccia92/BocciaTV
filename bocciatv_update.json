@@ -1,6 +1,6 @@
 {
-  "versionCode": 383,
-  "versionName": "14.2",
+  "versionCode": 384,
+  "versionName": "14.3",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Risoluzione definitiva del problema di installazione dell'aggiornamento (firma unificata debug/release).\n- Toggle Voice Boost nel player e immagini in alta definizione.\n- Ottimizzazioni e stabilità."
+  "releaseNotes": "- Rimosso l'ordinamento alfabetico automatico di default: ora viene mantenuto l'ordine originale della playlist/sorgente.\n- Aggiunto il pulsante 'A-Z' per ordinare alfabeticamente solo su richiesta dell'utente.\n- Ottimizzazioni e stabilità."
 }
