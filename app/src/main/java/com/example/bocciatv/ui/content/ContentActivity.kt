@@ -79,7 +79,6 @@ class ContentActivity : FragmentActivity() {
         btnSort.setOnClickListener {
             isAlphabeticalSort = !isAlphabeticalSort
             btnSort.text = if (isAlphabeticalSort) "AZ (On)" else "A-Z"
-            btnSort.setBackgroundColor(if (isAlphabeticalSort) Color.parseColor("#4CAF50") else Color.parseColor("#33FFFFFF"))
             applyFilters()
         }
 

@@ -1,6 +1,6 @@
 {
-  "versionCode": 389,
-  "versionName": "14.8",
+  "versionCode": 390,
+  "versionName": "14.9",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Implementata la Guida EPG Completa giornaliera tramite l'API 'get_simple_data_table'.\n- RecyclerView scorrevole con telecomando per navigare tra tutti i programmi passati e futuri del canale.\n- Possibilità di impostare promemoria su ciascun programma.\n- Stabilità generale."
+  "releaseNotes": "- Aggiunto il selettore di focus visivo ('button_selector') al pulsante A-Z per evidenziarlo correttamente quando selezionato con il telecomando.\n- Ottimizzazioni generali e stabilità."
 }

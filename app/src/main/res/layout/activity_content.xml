@@ -64,7 +64,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_toEndOf="@id/et_search"
                 android:layout_centerVertical="true"
-                android:backgroundTint="#33FFFFFF"
+                android:background="@drawable/button_selector"
                 android:text="A-Z"
                 android:textColor="@android:color/white"
                 android:textSize="13sp"
