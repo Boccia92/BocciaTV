@@ -102,7 +102,7 @@ object UpdateManager {
 
     private fun showUpdateDialog(activity: FragmentActivity, update: UpdateInfo, prefs: PrefsManager) {
         val versionDisplay = update.versionName ?: "v${update.versionCode}"
-        AlertDialog.Builder(activity, R.style.Theme_DeviceDefault_Dialog_Alert)
+        val builder = AlertDialog.Builder(activity, R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("Nuovo Aggiornamento!")
             .setMessage("È disponibile la versione $versionDisplay.\n\nNovità:\n${update.releaseNotes}")
             .setPositiveButton("Aggiorna") { _, _ ->
@@ -112,9 +112,15 @@ object UpdateManager {
             .setNeutralButton("Ignora") { _, _ ->
                 prefs.lastDismissedVersion = update.versionCode
             }
-            .setNegativeButton("Più tardi", null)
+            .setNegativeButton("Più tardi") { _, _ ->
+                prefs.lastDismissedVersion = update.versionCode
+            }
             .setCancelable(true)
-            .show()
+        
+        builder.setOnCancelListener {
+            prefs.lastDismissedVersion = update.versionCode
+        }
+        builder.show()
     }
 
     private fun downloadAndInstallApk(activity: FragmentActivity, apkUrl: String) {
