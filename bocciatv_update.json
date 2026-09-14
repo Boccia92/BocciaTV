@@ -1,6 +1,6 @@
 {
-  "versionCode": 380,
-  "versionName": "13.9",
+  "versionCode": 381,
+  "versionName": "14.0",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ottimizzazione compatibilità universale per Amazon Fire TV, Android TV, Smart TV Box, CarPlay Box e smartphone vecchi e nuovi.\n- Risolto definitivamente il loop di aggiornamento."
+  "releaseNotes": "- Miglioramento significativo della qualità delle immagini e delle miniature video in tutte le categorie (risoluzione originale e colori ARGB_8888).\n- Ottimizzazioni generali e stabilità."
 }
