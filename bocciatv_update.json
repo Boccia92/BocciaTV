@@ -1,6 +1,6 @@
 {
-  "versionCode": 387,
-  "versionName": "14.6",
+  "versionCode": 388,
+  "versionName": "14.7",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Controllo aggiornamenti OTA esteso anche al ritorno in primo piano (onResume).\n- Corretta la visualizzazione dei nomi lunghi delle categorie (fino a 2 righe e pannello allargato a 280dp).\n- Ordinamento A-Z manuale e Voice Boost attivo."
+  "releaseNotes": "- Implementato il sistema di Promemoria Programmi EPG con AlarmManager e persistenza.\n- Pulsante 'Ricorda' / 'Annulla' nel player per programmi futuri e notifiche di promemoria.\n- Ottimizzazioni e stabilità."
 }

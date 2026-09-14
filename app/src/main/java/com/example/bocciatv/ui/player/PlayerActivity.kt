@@ -11,9 +11,12 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import com.example.bocciatv.data.model.ReminderItem
+import com.example.bocciatv.utils.ReminderScheduler
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.FragmentActivity
 import androidx.media3.common.C
@@ -54,6 +57,10 @@ class PlayerActivity : FragmentActivity() {
     private var isNightModeActive = false
     private var loudnessEnhancer: LoudnessEnhancer? = null
     private var isVoiceBoostActive = false
+
+    private var nextProgramTitle: String? = null
+    private var nextProgramStartTime: Long = 0L
+    private var nextProgramEventId: String? = null
 
     private val handler = Handler(Looper.getMainLooper())
     private val progressUpdater = object : Runnable {
@@ -110,6 +117,40 @@ class PlayerActivity : FragmentActivity() {
 
         val btnSettings = playerView.findViewById<View>(R.id.btn_custom_settings)
         btnSettings?.setOnClickListener { showSettingsMenu() }
+
+        val btnReminder = playerView.findViewById<Button>(R.id.btn_reminder)
+        btnReminder?.setOnClickListener {
+            val title = nextProgramTitle
+            val startTime = nextProgramStartTime
+            val eventId = nextProgramEventId
+
+            if (title.isNullOrEmpty() || startTime <= System.currentTimeMillis()) {
+                Toast.makeText(this, "Nessun programma futuro disponibile per il promemoria", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val channelName = intent.getStringExtra("name") ?: "Canale TV"
+            val streamUrl = intent.getStringExtra("url") ?: ""
+            val currentId = currentMediaId ?: "unknown"
+
+            if (prefs.isReminderSet(eventId ?: "")) {
+                ReminderScheduler.cancelReminder(this, eventId!!)
+                btnReminder.text = "🔔 Ricorda"
+                Toast.makeText(this, "Promemoria rimosso", Toast.LENGTH_SHORT).show()
+            } else {
+                val item = ReminderItem(
+                    eventId = eventId ?: "$currentId-$startTime",
+                    programTitle = title,
+                    channelId = currentId,
+                    channelName = channelName,
+                    streamUrl = streamUrl,
+                    startTimeMillis = startTime
+                )
+                ReminderScheduler.scheduleReminder(this, item)
+                btnReminder.text = "🔔 Annulla"
+                Toast.makeText(this, "Promemoria impostato per: $title", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         val urlsArray = intent.getStringArrayExtra("urls")
         val idsArray = intent.getStringArrayExtra("ids")
@@ -255,6 +296,19 @@ class PlayerActivity : FragmentActivity() {
                 if (listings.isNotEmpty()) {
                     val current = listings[0]
                     val next = listings.getOrNull(1)
+
+                    if (next != null) {
+                        nextProgramTitle = next.decodedTitle
+                        val rawTs = next.startTimestamp ?: 0L
+                        nextProgramStartTime = if (rawTs > 10000000000L) rawTs else rawTs * 1000
+                        nextProgramEventId = next.id ?: "${streamId}_${next.decodedTitle}"
+
+                        val isSet = prefs.isReminderSet(nextProgramEventId!!)
+                        runOnUiThread {
+                            val btnReminder = playerView.findViewById<Button>(R.id.btn_reminder)
+                            btnReminder?.text = if (isSet) "🔔 Annulla" else "🔔 Ricorda"
+                        }
+                    }
 
                     runOnUiThread {
                         val currentText = "In onda: ${current.decodedTitle} (${current.start ?: "--:--"} - ${current.end ?: "--:--"})"

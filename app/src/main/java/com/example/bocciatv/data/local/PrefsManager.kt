@@ -1,6 +1,7 @@
 package com.example.bocciatv.data.local
 
 import android.content.Context
+import com.example.bocciatv.data.model.ReminderItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -89,6 +90,35 @@ class PrefsManager(context: Context) {
 
     fun isFavorite(type: String, id: String): Boolean {
         return getFavorites(type).contains(id)
+    }
+
+    fun getReminders(): List<ReminderItem> {
+        val json = prefs.getString("reminders_list", "[]")
+        return try {
+            val type = object : TypeToken<List<ReminderItem>>() {}.type
+            gson.fromJson(json, type) ?: emptyList()
+        } catch (e: Exception) { emptyList() }
+    }
+
+    fun saveReminders(list: List<ReminderItem>) {
+        prefs.edit().putString("reminders_list", gson.toJson(list)).apply()
+    }
+
+    fun addReminder(item: ReminderItem) {
+        val list = getReminders().toMutableList()
+        list.removeAll { it.eventId == item.eventId }
+        list.add(item)
+        saveReminders(list)
+    }
+
+    fun removeReminder(eventId: String) {
+        val list = getReminders().toMutableList()
+        list.removeAll { it.eventId == eventId }
+        saveReminders(list)
+    }
+
+    fun isReminderSet(eventId: String): Boolean {
+        return getReminders().any { it.eventId == eventId }
     }
 
     fun clear() = prefs.edit().clear().apply()
