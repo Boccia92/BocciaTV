@@ -27,6 +27,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DecodeFormat
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.bocciatv.R
 import com.example.bocciatv.data.local.PrefsManager
 import com.example.bocciatv.data.model.EpgResponse
@@ -120,7 +122,10 @@ class PlayerActivity : FragmentActivity() {
 
         if (!posterUrl.isNullOrEmpty() && ivPoster != null) {
             Glide.with(this)
+                .asBitmap()
                 .load(posterUrl)
+                .format(DecodeFormat.PREFER_ARGB_8888)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.movie)
                 .error(R.drawable.movie)
                 .into(ivPoster)
@@ -220,7 +225,10 @@ class PlayerActivity : FragmentActivity() {
         tvTitle?.text = channelName
         if (!posterUrl.isNullOrEmpty() && ivPoster != null) {
             Glide.with(this)
+                .asBitmap()
                 .load(posterUrl)
+                .format(DecodeFormat.PREFER_ARGB_8888)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.movie)
                 .error(R.drawable.movie)
                 .into(ivPoster)
