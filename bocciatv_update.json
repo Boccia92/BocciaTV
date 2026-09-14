@@ -1,6 +1,6 @@
 {
-  "versionCode": 382,
-  "versionName": "14.1",
+  "versionCode": 383,
+  "versionName": "14.2",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Aggiunto il toggle 'Voice Boost' nel menu impostazioni del player (LoudnessEnhancer +500mB per esaltare i dialoghi).\n- Migliorata la qualità delle immagini video in tutte le categorie.\n- Ottimizzazioni generali e stabilità."
+  "releaseNotes": "- Risoluzione definitiva del problema di installazione dell'aggiornamento (firma unificata debug/release).\n- Toggle Voice Boost nel player e immagini in alta definizione.\n- Ottimizzazioni e stabilità."
 }
