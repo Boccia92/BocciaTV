@@ -1,6 +1,6 @@
 {
-  "versionCode": 418,
-  "versionName": "17.7",
+  "versionCode": 419,
+  "versionName": "17.8",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Implementata la nuova fascia informativa EPG (Footer Overlay) in basso a destra nella schermata dei canali Live TV.\n- Visualizzazione estesa fino a 6 programmi in successione (In onda + 5 futuri) con orari formattati puliti (HH:mm) edebounce di 350ms al cambio focus.\n- Versione 17.7."
+  "releaseNotes": "- Aggiornato il logo dell'app, il banner e lo sfondo della dashboard con la nuova grafica personalizzata (logo dorato 'B').\n- Versione 17.8."
 }
