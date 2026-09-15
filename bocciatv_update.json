@@ -1,6 +1,6 @@
 {
-  "versionCode": 397,
-  "versionName": "15.6",
+  "versionCode": 398,
+  "versionName": "15.7",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Risolto il blocco di navigazione D-pad: ora è possibile muoversi liberamente tra tutti i pulsanti della barra dei controlli (Guida TV, Ricorda, Rewind, Fast Forward, Zoom, Subtitles, Settings) senza restare intrappolati.\n- Ottimizzazioni e stabilità (v15.6)."
+  "releaseNotes": "- Rimosso l'intercetto globale delle frecce Sinistra/Destra quando i controlli sono nascosti, ripristinando la normale navigazione D-pad tra tutti i pulsanti (Guida TV, Ricorda, Rewind, Play, Forward, Zoom, Subtitles, Settings).\n- Ottimizzazioni e stabilità (v15.7)."
 }

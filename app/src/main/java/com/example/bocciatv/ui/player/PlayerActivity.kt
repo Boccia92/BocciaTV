@@ -655,7 +655,6 @@ class PlayerActivity : FragmentActivity() {
                 when (keyCode) {
                     KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER,
                     KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_UP,
-                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
                     KeyEvent.KEYCODE_INFO -> {
                         showEpgOverlay()
                         val playBtn = playerView.findViewById<View>(R.id.btn_play_pause)
