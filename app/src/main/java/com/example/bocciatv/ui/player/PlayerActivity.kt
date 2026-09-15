@@ -669,22 +669,47 @@ class PlayerActivity : FragmentActivity() {
                 }
             } else {
                 showEpgOverlay()
+                val progressTimeBar = findControllerView("exo_progress")
+                val playPauseBtn = playerView.findViewById<View>(R.id.btn_play_pause)
+
                 if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+                    if (progressTimeBar != null && progressTimeBar.hasFocus()) {
+                        return super.onKeyDown(keyCode, event)
+                    }
                     val focused = currentFocus
                     if (focused != null) {
                         focused.performClick()
                         return true
                     }
                 } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                    val timeBar = findControllerView("exo_progress")
-                    if (timeBar != null && !timeBar.hasFocus()) {
-                        timeBar.requestFocus()
+                    if (progressTimeBar != null && !progressTimeBar.hasFocus()) {
+                        progressTimeBar.requestFocus()
                         return true
                     }
                 } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                    val playBtn = playerView.findViewById<View>(R.id.btn_play_pause)
-                    if (playBtn != null && !playBtn.hasFocus()) {
-                        playBtn.requestFocus()
+                    if (progressTimeBar != null && progressTimeBar.hasFocus()) {
+                        playPauseBtn?.requestFocus()
+                        return true
+                    } else {
+                        if (playPauseBtn != null && !playPauseBtn.hasFocus()) {
+                            playPauseBtn.requestFocus()
+                            return true
+                        }
+                    }
+                } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                    if (progressTimeBar != null && progressTimeBar.hasFocus()) {
+                        player?.let { p ->
+                            val currentPos = p.currentPosition
+                            val duration = p.duration
+                            val step = 15000L // 15 seconds per click
+                            val newPos = if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                                minOf(duration, currentPos + step)
+                            } else {
+                                maxOf(0L, currentPos - step)
+                            }
+                            p.seekTo(newPos)
+                            Toast.makeText(this, formatTime(newPos), Toast.LENGTH_SHORT).show()
+                        }
                         return true
                     }
                 } else if (keyCode == KeyEvent.KEYCODE_MENU) {
@@ -694,6 +719,18 @@ class PlayerActivity : FragmentActivity() {
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    private fun formatTime(ms: Long): String {
+        val totalSecs = ms / 1000
+        val hours = totalSecs / 3600
+        val minutes = (totalSecs % 3600) / 60
+        val seconds = totalSecs % 60
+        return if (hours > 0) {
+            String.format(Locale.US, "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format(Locale.US, "%02d:%02d", minutes, seconds)
+        }
     }
 
     override fun finish() {

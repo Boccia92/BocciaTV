@@ -1,6 +1,6 @@
 {
-  "versionCode": 395,
-  "versionName": "15.4",
+  "versionCode": 396,
+  "versionName": "15.5",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Sostituiti i doppi tasti Play/Pausa con un unico pulsante toggle centralizzato nella PlayerView.\n- Sincronizzazione automatica dell'icona tramite onIsPlayingChanged e focus immediato sul pulsante all'apertura dei controlli.\n- Ottimizzazioni e stabilità (v15.4)."
+  "releaseNotes": "- Implementato lo scorrimento e la ricerca temporale (scrubbing/seeking) con le frecce Sinistra/Destra del telecomando sulla barra di avanzamento (TimeBar).\n- Toast in tempo reale con il timestamp formattato durante lo scorrimento.\n- Navigazione D-pad ottimizzata tra il tasto Play/Pausa e la TimeBar.\n- Ottimizzazioni e stabilità (v15.5)."
 }
