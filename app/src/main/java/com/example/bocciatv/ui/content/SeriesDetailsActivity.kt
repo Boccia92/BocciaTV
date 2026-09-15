@@ -1,6 +1,7 @@
 package com.example.bocciatv.ui.content
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
@@ -57,10 +58,33 @@ class SeriesDetailsActivity : FragmentActivity() {
     private fun setupLists() {
         val rvSeasons = findViewById<RecyclerView>(R.id.rv_seasons)
         seasonAdapter = GenericAdapter(R.layout.item_simple, { v, item ->
-            v.findViewById<TextView>(R.id.tv_name).text = "Stagione $item"
+            val tv = v.findViewById<TextView>(R.id.tv_name)
+            tv.text = "Stagione $item"
+
+            val isSelected = item == currentSeasonKey
+            val isFocused = v.hasFocus()
+
+            when {
+                isFocused && isSelected -> {
+                    v.setBackgroundResource(R.drawable.category_focused_active_bg)
+                    tv.setTextColor(Color.BLACK)
+                }
+                isFocused -> {
+                    v.setBackgroundResource(R.drawable.category_focused_bg)
+                    tv.setTextColor(Color.BLACK)
+                }
+                isSelected -> {
+                    v.setBackgroundResource(R.drawable.category_active_bg)
+                    tv.setTextColor(Color.WHITE)
+                }
+                else -> {
+                    v.setBackgroundResource(android.R.color.transparent)
+                    tv.setTextColor(Color.WHITE)
+                }
+            }
         }, { seasonKey ->
             showEpisodes(seasonKey)
-        })
+        }, enableZoom = false)
         rvSeasons.layoutManager = LinearLayoutManager(this)
         rvSeasons.adapter = seasonAdapter
 
