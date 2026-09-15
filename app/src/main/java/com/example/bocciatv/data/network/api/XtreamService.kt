@@ -16,7 +16,8 @@ interface XtreamService {
     fun getCategories(
         @Query("username") user: String,
         @Query("password") pass: String,
-        @Query("action") action: String
+        @Query("action") action: String,
+        @Query("_t") timestamp: Long = System.currentTimeMillis()
     ): Call<List<Category>>
 
     @GET("player_api.php")
@@ -24,7 +25,8 @@ interface XtreamService {
         @Query("username") user: String,
         @Query("password") pass: String,
         @Query("action") action: String,
-        @Query("category_id") catId: String? = null
+        @Query("category_id") catId: String? = null,
+        @Query("_t") timestamp: Long = System.currentTimeMillis()
     ): Call<List<StreamItem>>
 
     @GET("player_api.php")

@@ -42,6 +42,7 @@ class ContentActivity : FragmentActivity() {
         const val TYPE_SERIES = "get_series_categories"
         private const val CAT_FAVORITES = "PREFERITI_ID"
         private const val CAT_RECENT = "RECENT_ID"
+        var shouldRefresh = false
     }
 
     private lateinit var type: String
@@ -88,7 +89,17 @@ class ContentActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
-        applyFilters()
+        if (shouldRefresh) {
+            Log.d("SYNC_DEBUG", "Database locale azzerato")
+            masterList = emptyList()
+            catAdapter.update(emptyList())
+            streamAdapter.update(emptyList())
+            loadCategories()
+            loadAllContent()
+            shouldRefresh = false
+        } else {
+            applyFilters()
+        }
     }
 
     private fun setupSearch() {
@@ -282,6 +293,9 @@ class ContentActivity : FragmentActivity() {
         NetworkModule.api.getCategories(prefs.user, prefs.pass, type).enqueue(object : Callback<List<Category>> {
             override fun onResponse(call: Call<List<Category>>, response: Response<List<Category>>) {
                 val cats = response.body() ?: emptyList()
+                val catNames = cats.mapNotNull { it.name }.joinToString(", ")
+                Log.d("SYNC_DEBUG", "Nuove categorie ricevute: $catNames")
+
                 val finalCats = mutableListOf<Category>()
                 finalCats.add(Category(CAT_FAVORITES, "⭐ PREFERITI"))
                 finalCats.add(Category(CAT_RECENT, "🕒 CONTINUA A GUARDARE"))

@@ -1,6 +1,6 @@
 {
-  "versionCode": 415,
-  "versionName": "17.4",
+  "versionCode": 416,
+  "versionName": "17.5",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Aggiornato il pulsante 'Aggiorna Lista' in MainActivity: ora azzera la cache locale e riesegue le chiamate API Xtream (con log di debug 'Database locale azzerato' e 'Nuove categorie ricevute: X') per rimuovere istantaneamente bouquet e categorie non più presenti sul pannello.\n- Versione 17.4."
+  "releaseNotes": "- Implementata la sincronizzazione reale delle categorie e flussi tramite ContentActivity.shouldRefresh e query Xtream anti-cache (_t timestamp).\n- Log di debug SYNC_DEBUG ('Database locale azzerato' e 'Nuove categorie ricevute: X').\n- Versione 17.5."
 }

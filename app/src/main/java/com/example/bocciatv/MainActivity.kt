@@ -103,33 +103,20 @@ class MainActivity : FragmentActivity() {
         }
 
         Log.d("SYNC_DEBUG", "Database locale azzerato")
+        ContentActivity.shouldRefresh = true
         prefs.clearCache()
 
-        NetworkModule.api.getCategories(prefs.user, prefs.pass, "get_live_categories").enqueue(object : Callback<List<Category>> {
-            override fun onResponse(call: Call<List<Category>>, response: Response<List<Category>>) {
-                val cats = response.body() ?: emptyList()
-                val catNames = cats.mapNotNull { it.name }.joinToString(", ")
-                Log.d("SYNC_DEBUG", "Nuove categorie ricevute: $catNames")
-
-                refreshAccountInfo(onResult = { success ->
-                    runOnUiThread {
-                        if (progressDialog.isShowing) {
-                            progressDialog.dismiss()
-                        }
-                        val msg = if (success) "Lista aggiornata con successo!" else "Errore durante l'aggiornamento della lista."
-                        AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                            .setTitle("Aggiornamento Lista")
-                            .setMessage(msg)
-                            .setPositiveButton("OK", null)
-                            .show()
-                    }
-                })
-            }
-            override fun onFailure(call: Call<List<Category>>, t: Throwable) {
-                runOnUiThread {
-                    if (progressDialog.isShowing) progressDialog.dismiss()
-                    Toast.makeText(this@MainActivity, "Errore di connessione durante l'aggiornamento", Toast.LENGTH_SHORT).show()
+        refreshAccountInfo(onResult = { success ->
+            runOnUiThread {
+                if (progressDialog.isShowing) {
+                    progressDialog.dismiss()
                 }
+                val msg = if (success) "Lista aggiornata! Rientra nelle categorie per visualizzare le modifiche." else "Errore durante l'aggiornamento della lista."
+                AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                    .setTitle("Aggiornamento Lista")
+                    .setMessage(msg)
+                    .setPositiveButton("OK", null)
+                    .show()
             }
         })
     }
