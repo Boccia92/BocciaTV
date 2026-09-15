@@ -291,7 +291,13 @@ class ContentActivity : FragmentActivity() {
                 finalCats.add(Category(CAT_FAVORITES, "⭐ PREFERITI"))
                 finalCats.add(Category(CAT_RECENT, "🕒 CONTINUA A GUARDARE"))
                 finalCats.addAll(cats)
-                runOnUiThread { catAdapter.update(finalCats) }
+                runOnUiThread {
+                    catAdapter.update(finalCats)
+                    if (currentCatId == CAT_FAVORITES && prefs.getFavorites(type).isEmpty() && cats.isNotEmpty()) {
+                        currentCatId = cats[0].id
+                        applyFilters()
+                    }
+                }
             }
             override fun onFailure(call: Call<List<Category>>, t: Throwable) {
                 runOnUiThread {

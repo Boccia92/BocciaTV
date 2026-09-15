@@ -1,6 +1,6 @@
 {
-  "versionCode": 402,
-  "versionName": "16.1",
+  "versionCode": 403,
+  "versionName": "16.2",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Rimossa la chiamata superflua a showEpgOverlay() durante la pressione dei tasti a controlli visibili, eliminando il furto/reset del focus orizzontale.\n- Navigazione D-pad sinistra/destra ora completamente fluida tra tutti i pulsanti della barra.\n- Versione 16.1."
+  "releaseNotes": "- Risolto il blocco di focus nella sezione Live TV (se la categoria Preferiti è vuota all'avvio, viene selezionata automaticamente la prima categoria reale per popolare la griglia dei canali).\n- Ottimizzazioni e stabilità (v16.2)."
 }
