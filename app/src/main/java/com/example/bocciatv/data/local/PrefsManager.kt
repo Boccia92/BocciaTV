@@ -121,5 +121,9 @@ class PrefsManager(context: Context) {
         return getReminders().any { it.eventId == eventId }
     }
 
+    fun clearCache() {
+        prefs.edit().remove("category_cache").apply()
+    }
+
     fun clear() = prefs.edit().clear().apply()
 }

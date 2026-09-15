@@ -1,6 +1,6 @@
 {
-  "versionCode": 414,
-  "versionName": "17.3",
+  "versionCode": 415,
+  "versionName": "17.4",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Risolto il bug di persistenza multipla del focus/sfondo attivo nella barra laterale delle categorie (chiamata a notifyDataSetChanged su onClick per aggiornare correttamente lo stato di selezione).\n- Versione 17.3."
+  "releaseNotes": "- Aggiornato il pulsante 'Aggiorna Lista' in MainActivity: ora azzera la cache locale e riesegue le chiamate API Xtream (con log di debug 'Database locale azzerato' e 'Nuove categorie ricevute: X') per rimuovere istantaneamente bouquet e categorie non più presenti sul pannello.\n- Versione 17.4."
 }

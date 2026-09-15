@@ -12,6 +12,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.FragmentActivity
 import androidx.media3.common.util.UnstableApi
 import com.example.bocciatv.data.local.PrefsManager
+import com.example.bocciatv.data.model.Category
 import com.example.bocciatv.data.model.UserAuth
 import com.example.bocciatv.data.network.NetworkModule
 import com.example.bocciatv.ui.content.ContentActivity
@@ -101,17 +102,34 @@ class MainActivity : FragmentActivity() {
             show()
         }
 
-        refreshAccountInfo(onResult = { success ->
-            runOnUiThread {
-                if (progressDialog.isShowing) {
-                    progressDialog.dismiss()
+        Log.d("SYNC_DEBUG", "Database locale azzerato")
+        prefs.clearCache()
+
+        NetworkModule.api.getCategories(prefs.user, prefs.pass, "get_live_categories").enqueue(object : Callback<List<Category>> {
+            override fun onResponse(call: Call<List<Category>>, response: Response<List<Category>>) {
+                val cats = response.body() ?: emptyList()
+                val catNames = cats.mapNotNull { it.name }.joinToString(", ")
+                Log.d("SYNC_DEBUG", "Nuove categorie ricevute: $catNames")
+
+                refreshAccountInfo(onResult = { success ->
+                    runOnUiThread {
+                        if (progressDialog.isShowing) {
+                            progressDialog.dismiss()
+                        }
+                        val msg = if (success) "Lista aggiornata con successo!" else "Errore durante l'aggiornamento della lista."
+                        AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                            .setTitle("Aggiornamento Lista")
+                            .setMessage(msg)
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                })
+            }
+            override fun onFailure(call: Call<List<Category>>, t: Throwable) {
+                runOnUiThread {
+                    if (progressDialog.isShowing) progressDialog.dismiss()
+                    Toast.makeText(this@MainActivity, "Errore di connessione durante l'aggiornamento", Toast.LENGTH_SHORT).show()
                 }
-                val msg = if (success) "Lista aggiornata!" else "Errore durante l'aggiornamento della lista."
-                AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                    .setTitle("Aggiornamento Lista")
-                    .setMessage(msg)
-                    .setPositiveButton("OK", null)
-                    .show()
             }
         })
     }
