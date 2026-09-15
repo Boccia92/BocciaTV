@@ -1,6 +1,6 @@
 {
-  "versionCode": 392,
-  "versionName": "15.1",
+  "versionCode": 393,
+  "versionName": "15.2",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Aggiornato lo stile di focus per la lista delle stagioni nelle Serie TV (rimosso lo zoom/scala e applicati gli stessi sfondi e selettori delle categorie principali).\n- Ottimizzazioni e stabilità (v15.1)."
+  "releaseNotes": "- Gestione avanzata e rigorosa degli errori di autenticazione e scadenza abbonamento (distinzione tra account scaduto, credenziali errate e server offline/network errors).\n- Ottimizzazioni e stabilità (v15.2)."
 }

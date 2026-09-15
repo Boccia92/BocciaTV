@@ -16,6 +16,9 @@ import com.example.bocciatv.utils.UpdateManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -73,25 +76,66 @@ class LoginActivity : FragmentActivity() {
 
             NetworkModule.api.authenticate(u, p).enqueue(object : Callback<UserAuth> {
                 override fun onResponse(call: Call<UserAuth>, response: Response<UserAuth>) {
-                    val auth = response.body()
-                    if (response.isSuccessful && auth?.userInfo != null) {
+                    val errorMessage = evaluateAuthResponse(response)
+                    if (errorMessage != null) {
+                        Toast.makeText(this@LoginActivity, errorMessage, Toast.LENGTH_LONG).show()
+                    } else {
+                        val auth = response.body()!!
                         prefs.user = u
                         prefs.pass = p
-                        
-                        // Handle and Format expiry date
-                        prefs.expDate = formatExpiryDate(auth.userInfo.expDate)
-                        
+                        prefs.expDate = formatExpiryDate(auth.userInfo?.expDate)
+
                         startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                         finish()
-                    } else {
-                        Toast.makeText(this@LoginActivity, "Credenziali errate", Toast.LENGTH_SHORT).show()
                     }
                 }
                 override fun onFailure(call: Call<UserAuth>, t: Throwable) {
-                    Toast.makeText(this@LoginActivity, "Errore connessione: ${t.message}", Toast.LENGTH_SHORT).show()
+                    val errorMsg = if (t is UnknownHostException || t is SocketTimeoutException || t is IOException) {
+                        "Server non disponibile o offline"
+                    } else {
+                        "Errore di connessione: ${t.message}"
+                    }
+                    Toast.makeText(this@LoginActivity, errorMsg, Toast.LENGTH_LONG).show()
                 }
             })
         }
+    }
+
+    private fun evaluateAuthResponse(response: Response<UserAuth>): String? {
+        if (!response.isSuccessful) {
+            return if (response.code() >= 500) {
+                "Server non disponibile o offline"
+            } else {
+                "Credenziali non corrette"
+            }
+        }
+
+        val auth = response.body()
+        val userInfo = auth?.userInfo
+
+        if (userInfo == null || userInfo.username.isNullOrEmpty()) {
+            return "Credenziali non corrette"
+        }
+
+        val status = userInfo.status ?: ""
+        if (status.equals("Expired", ignoreCase = true) || status.equals("Disabled", ignoreCase = true)) {
+            val expStr = formatExpiryDate(userInfo.expDate)
+            return "Account scaduto (Scadenza: $expStr). Rinnova il tuo abbonamento per continuare."
+        }
+
+        val rawExp = userInfo.expDate
+        if (rawExp != null && rawExp != "null" && rawExp != "") {
+            val timestamp = rawExp.toString().toLongOrNull()
+            if (timestamp != null && timestamp > 0) {
+                val expMillis = if (timestamp > 1000000000000L) timestamp else timestamp * 1000
+                if (expMillis < System.currentTimeMillis()) {
+                    val expStr = formatExpiryDate(rawExp)
+                    return "Account scaduto il $expStr. Rinnova il tuo abbonamento per continuare."
+                }
+            }
+        }
+
+        return null
     }
 
     private fun formatExpiryDate(rawExp: Any?): String {
