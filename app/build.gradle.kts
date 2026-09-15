@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.bocciatv"
         minSdk = 23
         targetSdk = 37
-        versionCode = 394
-        versionName = "15.3"
+        versionCode = 395
+        versionName = "15.4"
     }
 
     buildTypes {

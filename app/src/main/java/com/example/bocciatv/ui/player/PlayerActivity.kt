@@ -12,6 +12,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -127,6 +128,17 @@ class PlayerActivity : FragmentActivity() {
 
         val btnSettings = playerView.findViewById<View>(R.id.btn_custom_settings)
         btnSettings?.setOnClickListener { showSettingsMenu() }
+
+        val btnPlayPause = playerView.findViewById<ImageButton>(R.id.btn_play_pause)
+        btnPlayPause?.setOnClickListener {
+            player?.let { p ->
+                if (p.isPlaying) {
+                    p.pause()
+                } else {
+                    p.play()
+                }
+            }
+        }
 
         val btnEpgGuide = playerView.findViewById<Button>(R.id.btn_epg_guide)
         btnEpgGuide?.setOnClickListener {
@@ -289,6 +301,19 @@ class PlayerActivity : FragmentActivity() {
 
                 override fun onPlayerError(error: PlaybackException) {
                     Log.e("BocciaTV", "Playback Error: ${error.message}", error)
+                }
+
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    runOnUiThread {
+                        val btnPlayPause = playerView.findViewById<ImageButton>(R.id.btn_play_pause)
+                        if (isPlaying) {
+                            btnPlayPause?.setImageResource(android.R.drawable.ic_media_pause)
+                            btnPlayPause?.contentDescription = "Pausa"
+                        } else {
+                            btnPlayPause?.setImageResource(android.R.drawable.ic_media_play)
+                            btnPlayPause?.contentDescription = "Play"
+                        }
+                    }
                 }
             })
 
@@ -455,6 +480,10 @@ class PlayerActivity : FragmentActivity() {
     private fun showEpgOverlay() {
         if (isFinishing || isDestroyed) return
         playerView.showController()
+        playerView.post {
+            val btnPlayPause = playerView.findViewById<View>(R.id.btn_play_pause)
+            btnPlayPause?.requestFocus()
+        }
     }
 
     private fun hideEpgOverlay() {
@@ -629,7 +658,7 @@ class PlayerActivity : FragmentActivity() {
                     KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
                     KeyEvent.KEYCODE_INFO -> {
                         showEpgOverlay()
-                        val playBtn = findControllerView("exo_play") ?: findControllerView("exo_pause")
+                        val playBtn = playerView.findViewById<View>(R.id.btn_play_pause)
                         playBtn?.requestFocus()
                         return true
                     }
@@ -653,7 +682,7 @@ class PlayerActivity : FragmentActivity() {
                         return true
                     }
                 } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                    val playBtn = findControllerView("exo_play") ?: findControllerView("exo_pause")
+                    val playBtn = playerView.findViewById<View>(R.id.btn_play_pause)
                     if (playBtn != null && !playBtn.hasFocus()) {
                         playBtn.requestFocus()
                         return true

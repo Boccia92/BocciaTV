@@ -1,6 +1,6 @@
 {
-  "versionCode": 394,
-  "versionName": "15.3",
+  "versionCode": 395,
+  "versionName": "15.4",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Risolto il problema di risposta del tasto OK/Enter del telecomando sul pulsante Play/Pausa e su tutti i controlli della PlayerView.\n- Ottimizzazioni e stabilità (v15.3)."
+  "releaseNotes": "- Sostituiti i doppi tasti Play/Pausa con un unico pulsante toggle centralizzato nella PlayerView.\n- Sincronizzazione automatica dell'icona tramite onIsPlayingChanged e focus immediato sul pulsante all'apertura dei controlli.\n- Ottimizzazioni e stabilità (v15.4)."
 }
