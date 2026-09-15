@@ -1,6 +1,6 @@
 {
-  "versionCode": 405,
-  "versionName": "16.4",
+  "versionCode": 406,
+  "versionName": "16.5",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Rimosse le referenze di focus verticali verso la TimeBar nascosta nei canali Live TV, ripristinando la perfetta navigazione orizzontale su tutti i pulsanti della barra dei controlli.\n- Versione 16.4."
+  "releaseNotes": "- Rimossa qualsiasi forzatura di focus o showController automatico all'avvio e nel caricamento EPG in PlayerActivity (eliminato il loop di play/pausa e il blocco dei tasti).\n- Gestione pulita e immediata della TimeBar per i flussi Live TV.\n- Versione 16.5."
 }

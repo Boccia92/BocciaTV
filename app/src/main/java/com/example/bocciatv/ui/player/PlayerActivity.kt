@@ -81,10 +81,14 @@ class PlayerActivity : FragmentActivity() {
             val timeBar = findControllerView("exo_progress")
             val currentIntent = getIntent()
             val isLive = p.duration <= 0L || currentIntent.getStringArrayExtra("urls") != null || currentIntent.getStringExtra("url")?.contains(".ts") == true
-            if (isLive) {
-                timeBar?.visibility = View.GONE
-            } else {
-                timeBar?.visibility = View.VISIBLE
+            if (timeBar != null) {
+                if (isLive) {
+                    timeBar.visibility = View.GONE
+                    timeBar.isFocusable = false
+                } else {
+                    timeBar.visibility = View.VISIBLE
+                    timeBar.isFocusable = true
+                }
             }
         }
     }
@@ -255,6 +259,7 @@ class PlayerActivity : FragmentActivity() {
             it.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     if (state == Player.STATE_READY) {
+                        updateControlBarVisibility()
                         val sessionId = it.audioSessionId
                         if (sessionId != C.AUDIO_SESSION_ID_UNSET) {
                             if (isVoiceBoostActive && loudnessEnhancer == null) {
@@ -471,12 +476,7 @@ class PlayerActivity : FragmentActivity() {
     }
 
     private fun showEpgOverlay() {
-        if (isFinishing || isDestroyed) return
-        playerView.showController()
-        playerView.post {
-            val btnPlayPause = playerView.findViewById<View>(R.id.btn_play_pause)
-            btnPlayPause?.requestFocus()
-        }
+        // No-op: update metadata text without stealing focus or forcing controller open
     }
 
     private fun hideEpgOverlay() {
