@@ -89,7 +89,6 @@ class ContentActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
         applyFilters()
-        catAdapter.notifyDataSetChanged()
     }
 
     private fun setupSearch() {
@@ -139,10 +138,7 @@ class ContentActivity : FragmentActivity() {
                     val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
                     rvStreams.post { 
                         rvStreams.requestFocus() 
-                        catAdapter.notifyDataSetChanged()
                     }
-                } else {
-                    catAdapter.notifyDataSetChanged()
                 }
             }
         }.start()
@@ -181,9 +177,13 @@ class ContentActivity : FragmentActivity() {
             onClick = { item ->
                 currentCatId = item.id
                 findViewById<EditText>(R.id.et_search).text.clear()
-                // Richiediamo lo spostamento del focus sui contenuti 
-                // e l'aggiornamento UI avverrà dopo il cambio focus per evitare il reset
                 applyFilters(focusStreams = true)
+            },
+            onFocus = { item ->
+                if (currentCatId != item.id) {
+                    currentCatId = item.id
+                    applyFilters()
+                }
             },
             enableZoom = false
         )

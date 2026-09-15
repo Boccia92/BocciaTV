@@ -1,6 +1,6 @@
 {
-  "versionCode": 409,
-  "versionName": "16.8",
+  "versionCode": 410,
+  "versionName": "16.9",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ripristinato l'avvio predefinito sulla categoria 'Preferiti' per Film e Serie TV (il fallback automatico alla prima categoria viene ora applicato esclusivamente alla Live TV).\n- Versione 16.8."
+  "releaseNotes": "- Ottimizzata la navigazione nella barra laterale delle categorie: eliminati i refresh continui con notifyDataSetChanged che causavano il salto involontario del focus sui Preferiti e introdotto l'aggiornamento dinamico al passaggio del focus (onFocus).\n- Versione 16.9."
 }
