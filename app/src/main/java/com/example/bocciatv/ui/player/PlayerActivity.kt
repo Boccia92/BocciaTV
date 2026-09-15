@@ -646,7 +646,6 @@ class PlayerActivity : FragmentActivity() {
                     }
                 }
             } else {
-                showEpgOverlay()
                 val progressTimeBar = findControllerView("exo_progress")
                 val playPauseBtn = playerView.findViewById<View>(R.id.btn_play_pause)
 
@@ -685,6 +684,7 @@ class PlayerActivity : FragmentActivity() {
                         }
                         return true
                     }
+                    return super.onKeyDown(keyCode, event)
                 } else if (keyCode == KeyEvent.KEYCODE_MENU) {
                     showSettingsMenu()
                     return true

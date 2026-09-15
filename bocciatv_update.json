@@ -1,6 +1,6 @@
 {
-  "versionCode": 401,
-  "versionName": "16.0",
+  "versionCode": 402,
+  "versionName": "16.1",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Rimosso completamente il sistema 'Skip Intro' e 'Binge Watching' per ripristinare la pulizia e la perfetta fluidità della navigazione D-pad.\n- Navigazione orizzontale e verticale tra i pulsanti dei controlli del player (Guida TV, Ricorda, Rewind, Play/Pausa, Fast Forward, Zoom, Subtitles, Settings) ora 100% libera e senza conflitti.\n- Versione 16.0."
+  "releaseNotes": "- Rimossa la chiamata superflua a showEpgOverlay() durante la pressione dei tasti a controlli visibili, eliminando il furto/reset del focus orizzontale.\n- Navigazione D-pad sinistra/destra ora completamente fluida tra tutti i pulsanti della barra.\n- Versione 16.1."
 }
