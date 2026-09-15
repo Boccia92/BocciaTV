@@ -1,6 +1,6 @@
 {
-  "versionCode": 400,
-  "versionName": "15.9",
+  "versionCode": 401,
+  "versionName": "16.0",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Risolto il conflitto di focus causato dal timer dello Skip Intro / Binge Watching (rimosso il requestFocus automatico continuo e disabilitato il focus sul container overlay).\n- Navigazione D-pad ora perfettamente fluida su tutti i pulsanti.\n- Ottimizzazioni e stabilità (v15.9)."
+  "releaseNotes": "- Rimosso completamente il sistema 'Skip Intro' e 'Binge Watching' per ripristinare la pulizia e la perfetta fluidità della navigazione D-pad.\n- Navigazione orizzontale e verticale tra i pulsanti dei controlli del player (Guida TV, Ricorda, Rewind, Play/Pausa, Fast Forward, Zoom, Subtitles, Settings) ora 100% libera e senza conflitti.\n- Versione 16.0."
 }
