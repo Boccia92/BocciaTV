@@ -1,6 +1,6 @@
 {
-  "versionCode": 398,
-  "versionName": "15.7",
+  "versionCode": 399,
+  "versionName": "15.8",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Rimosso l'intercetto globale delle frecce Sinistra/Destra quando i controlli sono nascosti, ripristinando la normale navigazione D-pad tra tutti i pulsanti (Guida TV, Ricorda, Rewind, Play, Forward, Zoom, Subtitles, Settings).\n- Ottimizzazioni e stabilità (v15.7)."
+  "releaseNotes": "- Cablaggio esplicito della navigazione hardware D-pad (nextFocusLeft e nextFocusRight) su tutti i pulsanti della barra dei controlli del player.\n- Ottimizzazioni e stabilità (v15.8)."
 }
