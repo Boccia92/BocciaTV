@@ -1,6 +1,6 @@
 {
-  "versionCode": 410,
-  "versionName": "16.9",
+  "versionCode": 411,
+  "versionName": "17.0",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ottimizzata la navigazione nella barra laterale delle categorie: eliminati i refresh continui con notifyDataSetChanged che causavano il salto involontario del focus sui Preferiti e introdotto l'aggiornamento dinamico al passaggio del focus (onFocus).\n- Versione 16.9."
+  "releaseNotes": "- Ottimizzata la gestione dei colori di focus nella barra laterale delle categorie: ora lo scorrimento evidenzia solo l'elemento corrente in focus senza lasciare scie o alterare prematuramente la selezione attiva.\n- Versione 17.0."
 }

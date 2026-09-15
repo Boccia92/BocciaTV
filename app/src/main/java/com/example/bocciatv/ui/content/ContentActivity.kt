@@ -179,12 +179,6 @@ class ContentActivity : FragmentActivity() {
                 findViewById<EditText>(R.id.et_search).text.clear()
                 applyFilters(focusStreams = true)
             },
-            onFocus = { item ->
-                if (currentCatId != item.id) {
-                    currentCatId = item.id
-                    applyFilters()
-                }
-            },
             enableZoom = false
         )
         rvCats.layoutManager = LinearLayoutManager(this)
