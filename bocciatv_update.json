@@ -1,6 +1,6 @@
 {
-  "versionCode": 396,
-  "versionName": "15.5",
+  "versionCode": 397,
+  "versionName": "15.6",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Implementato lo scorrimento e la ricerca temporale (scrubbing/seeking) con le frecce Sinistra/Destra del telecomando sulla barra di avanzamento (TimeBar).\n- Toast in tempo reale con il timestamp formattato durante lo scorrimento.\n- Navigazione D-pad ottimizzata tra il tasto Play/Pausa e la TimeBar.\n- Ottimizzazioni e stabilità (v15.5)."
+  "releaseNotes": "- Risolto il blocco di navigazione D-pad: ora è possibile muoversi liberamente tra tutti i pulsanti della barra dei controlli (Guida TV, Ricorda, Rewind, Fast Forward, Zoom, Subtitles, Settings) senza restare intrappolati.\n- Ottimizzazioni e stabilità (v15.6)."
 }

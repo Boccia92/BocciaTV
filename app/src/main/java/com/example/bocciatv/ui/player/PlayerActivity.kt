@@ -682,19 +682,14 @@ class PlayerActivity : FragmentActivity() {
                         return true
                     }
                 } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                    if (progressTimeBar != null && !progressTimeBar.hasFocus()) {
-                        progressTimeBar.requestFocus()
+                    if (playPauseBtn != null && playPauseBtn.hasFocus()) {
+                        progressTimeBar?.requestFocus()
                         return true
                     }
                 } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                     if (progressTimeBar != null && progressTimeBar.hasFocus()) {
                         playPauseBtn?.requestFocus()
                         return true
-                    } else {
-                        if (playPauseBtn != null && !playPauseBtn.hasFocus()) {
-                            playPauseBtn.requestFocus()
-                            return true
-                        }
                     }
                 } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
                     if (progressTimeBar != null && progressTimeBar.hasFocus()) {
