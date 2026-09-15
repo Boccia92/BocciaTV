@@ -780,7 +780,6 @@ class PlayerActivity : FragmentActivity() {
             tvCountdown?.text = "Prossimo episodio in ${secondsLeft}s..."
             if (llBinge?.visibility != View.VISIBLE) {
                 llBinge?.visibility = View.VISIBLE
-                llBinge?.requestFocus()
             }
 
             if (secondsLeft <= 1 && !isBingeActive) {

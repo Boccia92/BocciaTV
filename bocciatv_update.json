@@ -1,6 +1,6 @@
 {
-  "versionCode": 399,
-  "versionName": "15.8",
+  "versionCode": 400,
+  "versionName": "15.9",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Cablaggio esplicito della navigazione hardware D-pad (nextFocusLeft e nextFocusRight) su tutti i pulsanti della barra dei controlli del player.\n- Ottimizzazioni e stabilità (v15.8)."
+  "releaseNotes": "- Risolto il conflitto di focus causato dal timer dello Skip Intro / Binge Watching (rimosso il requestFocus automatico continuo e disabilitato il focus sul container overlay).\n- Navigazione D-pad ora perfettamente fluida su tutti i pulsanti.\n- Ottimizzazioni e stabilità (v15.9)."
 }
