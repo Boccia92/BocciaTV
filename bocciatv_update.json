@@ -1,6 +1,6 @@
 {
-  "versionCode": 393,
-  "versionName": "15.2",
+  "versionCode": 394,
+  "versionName": "15.3",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Gestione avanzata e rigorosa degli errori di autenticazione e scadenza abbonamento (distinzione tra account scaduto, credenziali errate e server offline/network errors).\n- Ottimizzazioni e stabilità (v15.2)."
+  "releaseNotes": "- Risolto il problema di risposta del tasto OK/Enter del telecomando sul pulsante Play/Pausa e su tutti i controlli della PlayerView.\n- Ottimizzazioni e stabilità (v15.3)."
 }

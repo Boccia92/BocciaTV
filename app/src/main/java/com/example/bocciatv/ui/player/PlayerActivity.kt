@@ -640,7 +640,13 @@ class PlayerActivity : FragmentActivity() {
                 }
             } else {
                 showEpgOverlay()
-                if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+                    val focused = currentFocus
+                    if (focused != null) {
+                        focused.performClick()
+                        return true
+                    }
+                } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
                     val timeBar = findControllerView("exo_progress")
                     if (timeBar != null && !timeBar.hasFocus()) {
                         timeBar.requestFocus()
