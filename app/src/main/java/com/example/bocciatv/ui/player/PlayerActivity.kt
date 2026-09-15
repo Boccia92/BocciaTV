@@ -71,7 +71,21 @@ class PlayerActivity : FragmentActivity() {
     private val progressUpdater = object : Runnable {
         override fun run() {
             saveCurrentPosition()
+            updateControlBarVisibility()
             handler.postDelayed(this, 5000)
+        }
+    }
+
+    private fun updateControlBarVisibility() {
+        player?.let { p ->
+            val timeBar = findControllerView("exo_progress")
+            val currentIntent = getIntent()
+            val isLive = p.duration <= 0L || currentIntent.getStringArrayExtra("urls") != null || currentIntent.getStringExtra("url")?.contains(".ts") == true
+            if (isLive) {
+                timeBar?.visibility = View.GONE
+            } else {
+                timeBar?.visibility = View.VISIBLE
+            }
         }
     }
 
