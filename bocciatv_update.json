@@ -1,6 +1,6 @@
 {
-  "versionCode": 406,
-  "versionName": "16.5",
+  "versionCode": 407,
+  "versionName": "16.6",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Rimossa qualsiasi forzatura di focus o showController automatico all'avvio e nel caricamento EPG in PlayerActivity (eliminato il loop di play/pausa e il blocco dei tasti).\n- Gestione pulita e immediata della TimeBar per i flussi Live TV.\n- Versione 16.5."
+  "releaseNotes": "- Uniformata al 100% la gestione dei controlli in PlayerActivity tra Film, Serie TV e Live TV (rimossa qualsiasi logica speciale o nascondimento di componenti).\n- Navigazione D-pad completamente libera e nativa su tutti i pulsanti e la TimeBar.\n- Versione 16.6."
 }

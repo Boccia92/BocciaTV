@@ -71,25 +71,7 @@ class PlayerActivity : FragmentActivity() {
     private val progressUpdater = object : Runnable {
         override fun run() {
             saveCurrentPosition()
-            updateControlBarVisibility()
             handler.postDelayed(this, 5000)
-        }
-    }
-
-    private fun updateControlBarVisibility() {
-        player?.let { p ->
-            val timeBar = findControllerView("exo_progress")
-            val currentIntent = getIntent()
-            val isLive = p.duration <= 0L || currentIntent.getStringArrayExtra("urls") != null || currentIntent.getStringExtra("url")?.contains(".ts") == true
-            if (timeBar != null) {
-                if (isLive) {
-                    timeBar.visibility = View.GONE
-                    timeBar.isFocusable = false
-                } else {
-                    timeBar.visibility = View.VISIBLE
-                    timeBar.isFocusable = true
-                }
-            }
         }
     }
 
@@ -259,7 +241,6 @@ class PlayerActivity : FragmentActivity() {
             it.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     if (state == Player.STATE_READY) {
-                        updateControlBarVisibility()
                         val sessionId = it.audioSessionId
                         if (sessionId != C.AUDIO_SESSION_ID_UNSET) {
                             if (isVoiceBoostActive && loudnessEnhancer == null) {
@@ -660,45 +641,16 @@ class PlayerActivity : FragmentActivity() {
                     }
                 }
             } else {
-                val progressTimeBar = findControllerView("exo_progress")
-                val playPauseBtn = playerView.findViewById<View>(R.id.btn_play_pause)
-
                 if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+                    val progressTimeBar = findControllerView("exo_progress")
                     if (progressTimeBar != null && progressTimeBar.hasFocus()) {
                         return super.onKeyDown(keyCode, event)
                     }
                     val focused = currentFocus
-                    if (focused != null) {
+                    if (focused != null && focused != progressTimeBar) {
                         focused.performClick()
                         return true
                     }
-                } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                    if (playPauseBtn != null && playPauseBtn.hasFocus()) {
-                        progressTimeBar?.requestFocus()
-                        return true
-                    }
-                } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                    if (progressTimeBar != null && progressTimeBar.hasFocus()) {
-                        playPauseBtn?.requestFocus()
-                        return true
-                    }
-                } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                    if (progressTimeBar != null && progressTimeBar.hasFocus()) {
-                        player?.let { p ->
-                            val currentPos = p.currentPosition
-                            val duration = p.duration
-                            val step = 15000L // 15 seconds per click
-                            val newPos = if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                                minOf(duration, currentPos + step)
-                            } else {
-                                maxOf(0L, currentPos - step)
-                            }
-                            p.seekTo(newPos)
-                            Toast.makeText(this, formatTime(newPos), Toast.LENGTH_SHORT).show()
-                        }
-                        return true
-                    }
-                    return super.onKeyDown(keyCode, event)
                 } else if (keyCode == KeyEvent.KEYCODE_MENU) {
                     showSettingsMenu()
                     return true
@@ -706,18 +658,6 @@ class PlayerActivity : FragmentActivity() {
             }
         }
         return super.onKeyDown(keyCode, event)
-    }
-
-    private fun formatTime(ms: Long): String {
-        val totalSecs = ms / 1000
-        val hours = totalSecs / 3600
-        val minutes = (totalSecs % 3600) / 60
-        val seconds = totalSecs % 60
-        return if (hours > 0) {
-            String.format(Locale.US, "%d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            String.format(Locale.US, "%02d:%02d", minutes, seconds)
-        }
     }
 
     override fun finish() {
