@@ -112,6 +112,7 @@ class PlayerActivity : FragmentActivity() {
         isVoiceBoostActive = prefs.isVoiceBoost
 
         playerView = findViewById(R.id.player_view)
+        configurePlayerControlsForMedia()
 
         // Setup custom action button listeners inside the player control overlay
         val btnZoom = playerView.findViewById<View>(R.id.btn_custom_zoom)
@@ -241,6 +242,7 @@ class PlayerActivity : FragmentActivity() {
             it.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     if (state == Player.STATE_READY) {
+                        configurePlayerControlsForMedia()
                         val sessionId = it.audioSessionId
                         if (sessionId != C.AUDIO_SESSION_ID_UNSET) {
                             if (isVoiceBoostActive && loudnessEnhancer == null) {
@@ -689,6 +691,69 @@ class PlayerActivity : FragmentActivity() {
         player?.stop()
         player?.release()
         player = null
+    }
+
+    private fun configurePlayerControlsForMedia() {
+        val currentIntent = getIntent()
+        val isLive = currentIntent.getStringArrayExtra("urls") != null || currentIntent.getStringExtra("url")?.contains(".ts") == true
+
+        val timeBar = findControllerView("exo_progress")
+        val btnRew = findControllerView("exo_rew")
+        val btnFfwd = findControllerView("exo_ffwd")
+        val btnZoom = findControllerView("btn_custom_zoom")
+        val btnSubtitles = findControllerView("btn_custom_subtitles")
+
+        val btnEpg = playerView.findViewById<View>(R.id.btn_epg_guide)
+        val btnReminder = playerView.findViewById<View>(R.id.btn_reminder)
+        val btnPlayPause = playerView.findViewById<View>(R.id.btn_play_pause)
+        val btnSettings = playerView.findViewById<View>(R.id.btn_custom_settings)
+
+        if (isLive) {
+            if (timeBar != null) {
+                timeBar.visibility = View.GONE
+                timeBar.isFocusable = false
+            }
+
+            btnRew?.isFocusable = false
+            btnRew?.isClickable = false
+            btnFfwd?.isFocusable = false
+            btnFfwd?.isClickable = false
+            btnZoom?.isFocusable = false
+            btnZoom?.isClickable = false
+            btnSubtitles?.isFocusable = false
+            btnSubtitles?.isClickable = false
+
+            btnEpg?.isFocusable = true
+            btnReminder?.isFocusable = true
+            btnPlayPause?.isFocusable = true
+            btnSettings?.isFocusable = true
+
+            btnEpg?.nextFocusRightId = R.id.btn_reminder
+            btnEpg?.nextFocusLeftId = R.id.btn_custom_settings
+
+            btnReminder?.nextFocusRightId = R.id.btn_play_pause
+            btnReminder?.nextFocusLeftId = R.id.btn_epg_guide
+
+            btnPlayPause?.nextFocusRightId = R.id.btn_custom_settings
+            btnPlayPause?.nextFocusLeftId = R.id.btn_reminder
+
+            btnSettings?.nextFocusRightId = R.id.btn_epg_guide
+            btnSettings?.nextFocusLeftId = R.id.btn_play_pause
+        } else {
+            if (timeBar != null) {
+                timeBar.visibility = View.VISIBLE
+                timeBar.isFocusable = true
+            }
+
+            btnRew?.isFocusable = true
+            btnRew?.isClickable = true
+            btnFfwd?.isFocusable = true
+            btnFfwd?.isClickable = true
+            btnZoom?.isFocusable = true
+            btnZoom?.isClickable = true
+            btnSubtitles?.isFocusable = true
+            btnSubtitles?.isClickable = true
+        }
     }
 
     override fun onPause() {
