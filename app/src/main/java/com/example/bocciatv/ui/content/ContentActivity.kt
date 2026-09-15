@@ -293,7 +293,7 @@ class ContentActivity : FragmentActivity() {
                 finalCats.addAll(cats)
                 runOnUiThread {
                     catAdapter.update(finalCats)
-                    if (currentCatId == CAT_FAVORITES && prefs.getFavorites(type).isEmpty() && cats.isNotEmpty()) {
+                    if (type == TYPE_LIVE && currentCatId == CAT_FAVORITES && prefs.getFavorites(type).isEmpty() && cats.isNotEmpty()) {
                         currentCatId = cats[0].id
                         applyFilters()
                     }
