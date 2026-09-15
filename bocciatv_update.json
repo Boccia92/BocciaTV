@@ -1,6 +1,6 @@
 {
-  "versionCode": 412,
-  "versionName": "17.1",
+  "versionCode": 413,
+  "versionName": "17.2",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Riattivato l'aggiornamento in tempo reale del contenuto a destra al passaggio del focus sulle categorie (onFocus), separando lo stato di focus da quello di selezione attiva (activeCatId) per evitare scie di colori indesiderate.\n- Versione 17.1."
+  "releaseNotes": "- Ripristinata la logica originale stabile e pulita della selezione delle categorie tramite click (onClick).\n- Versione 17.2."
 }
