@@ -1,6 +1,6 @@
 {
-  "versionCode": 404,
-  "versionName": "16.3",
+  "versionCode": 405,
+  "versionName": "16.4",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ottimizzata la gestione dei flussi Live TV in PlayerActivity: nascondendo automaticamente la TimeBar non seekable, il cursore non si blocca più e permette di navigare liberamente su tutti i pulsanti (incluso 'Guida TV').\n- Versione 16.3."
+  "releaseNotes": "- Rimosse le referenze di focus verticali verso la TimeBar nascosta nei canali Live TV, ripristinando la perfetta navigazione orizzontale su tutti i pulsanti della barra dei controlli.\n- Versione 16.4."
 }

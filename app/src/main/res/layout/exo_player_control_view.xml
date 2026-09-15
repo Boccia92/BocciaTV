@@ -141,8 +141,7 @@
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
                     android:paddingHorizontal="10dp"
-                    android:nextFocusRight="@+id/btn_reminder"
-                    android:nextFocusUp="@+id/exo_progress"/>
+                    android:nextFocusRight="@+id/btn_reminder"/>
 
                 <Button
                     android:id="@+id/btn_reminder"
@@ -157,8 +156,7 @@
                     android:textSize="12sp"
                     android:paddingHorizontal="10dp"
                     android:nextFocusLeft="@+id/btn_epg_guide"
-                    android:nextFocusRight="@id/exo_rew"
-                    android:nextFocusUp="@+id/exo_progress"/>
+                    android:nextFocusRight="@id/exo_rew"/>
 
                 <ImageButton
                     android:id="@id/exo_rew"
@@ -172,8 +170,7 @@
                     app:tint="@android:color/white"
                     android:contentDescription="Indietro 10s"
                     android:nextFocusLeft="@+id/btn_reminder"
-                    android:nextFocusRight="@+id/btn_play_pause"
-                    android:nextFocusUp="@+id/exo_progress"/>
+                    android:nextFocusRight="@+id/btn_play_pause"/>
 
                 <ImageButton
                     android:id="@+id/btn_play_pause"
@@ -188,8 +185,7 @@
                     app:tint="@android:color/white"
                     android:contentDescription="Play/Pausa"
                     android:nextFocusLeft="@id/exo_rew"
-                    android:nextFocusRight="@id/exo_ffwd"
-                    android:nextFocusUp="@+id/exo_progress"/>
+                    android:nextFocusRight="@id/exo_ffwd"/>
 
                 <ImageButton
                     android:id="@id/exo_ffwd"
@@ -204,8 +200,7 @@
                     app:tint="@android:color/white"
                     android:contentDescription="Avanti 10s"
                     android:nextFocusLeft="@+id/btn_play_pause"
-                    android:nextFocusRight="@+id/btn_custom_zoom"
-                    android:nextFocusUp="@+id/exo_progress"/>
+                    android:nextFocusRight="@+id/btn_custom_zoom"/>
 
                 <ImageButton
                     android:id="@+id/btn_custom_zoom"
@@ -220,8 +215,7 @@
                     app:tint="@android:color/white"
                     android:contentDescription="Zoom / Formato Video"
                     android:nextFocusLeft="@id/exo_ffwd"
-                    android:nextFocusRight="@+id/btn_custom_subtitles"
-                    android:nextFocusUp="@+id/exo_progress"/>
+                    android:nextFocusRight="@+id/btn_custom_subtitles"/>
 
                 <ImageButton
                     android:id="@+id/btn_custom_subtitles"
@@ -236,8 +230,7 @@
                     app:tint="@android:color/white"
                     android:contentDescription="Sottotitoli"
                     android:nextFocusLeft="@+id/btn_custom_zoom"
-                    android:nextFocusRight="@+id/btn_custom_settings"
-                    android:nextFocusUp="@+id/exo_progress"/>
+                    android:nextFocusRight="@+id/btn_custom_settings"/>
 
                 <ImageButton
                     android:id="@+id/btn_custom_settings"
@@ -251,8 +244,7 @@
                     android:src="@drawable/ic_settings"
                     app:tint="@android:color/white"
                     android:contentDescription="Impostazioni Video"
-                    android:nextFocusLeft="@+id/btn_custom_subtitles"
-                    android:nextFocusUp="@+id/exo_progress"/>
+                    android:nextFocusLeft="@+id/btn_custom_subtitles"/>
 
             </LinearLayout>
 
