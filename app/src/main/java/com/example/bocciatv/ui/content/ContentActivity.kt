@@ -4,9 +4,12 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -23,6 +26,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.bocciatv.R
 import com.example.bocciatv.data.local.PrefsManager
 import com.example.bocciatv.data.model.Category
+import com.example.bocciatv.data.model.EpgResponse
 import com.example.bocciatv.data.model.StreamItem
 import com.example.bocciatv.data.network.NetworkModule
 import com.example.bocciatv.ui.adapter.GenericAdapter
@@ -31,6 +35,8 @@ import com.example.bocciatv.utils.DisplayUtils
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 @UnstableApi
@@ -54,6 +60,9 @@ class ContentActivity : FragmentActivity() {
     private var currentCatId: String? = CAT_FAVORITES
     private var currentSearch: String = ""
     private var isAlphabeticalSort = false
+
+    private val epgHandler = Handler(Looper.getMainLooper())
+    private var epgRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val locale = Locale.ITALY
@@ -251,6 +260,113 @@ class ContentActivity : FragmentActivity() {
                 startActivity(intent)
                 overridePendingTransition(0, 0)
             }
+        }, onFocus = { item ->
+            if (type == TYPE_LIVE) {
+                val llPreview = findViewById<View>(R.id.ll_epg_preview)
+                val tvTitle = findViewById<TextView>(R.id.tv_preview_title)
+                val tvCurrent = findViewById<TextView>(R.id.tv_preview_current)
+                val tvNext = findViewById<TextView>(R.id.tv_preview_next)
+                val tvNext2 = findViewById<TextView>(R.id.tv_preview_next2)
+                val tvNext3 = findViewById<TextView>(R.id.tv_preview_next3)
+                val tvNext4 = findViewById<TextView>(R.id.tv_preview_next4)
+                val tvNext5 = findViewById<TextView>(R.id.tv_preview_next5)
+                val ivLogo = findViewById<ImageView>(R.id.iv_preview_logo)
+
+                llPreview?.visibility = View.VISIBLE
+                tvTitle?.text = item.name
+                tvCurrent?.text = "IN ONDA: Caricamento..."
+                tvNext?.text = "A SEGUIRE: Caricamento..."
+                tvNext2?.text = "POI: Caricamento..."
+                tvNext3?.text = "PIÙ TARDI: Caricamento..."
+                tvNext4?.text = "Caricamento..."
+                tvNext5?.text = "Caricamento..."
+
+                val iconUrl = item.icon ?: item.cover
+                if (!iconUrl.isNullOrEmpty() && ivLogo != null) {
+                    Glide.with(this).load(iconUrl).placeholder(R.drawable.movie).error(R.drawable.movie).into(ivLogo)
+                } else {
+                    ivLogo?.setImageResource(R.drawable.movie)
+                }
+
+                epgRunnable?.let { epgHandler.removeCallbacks(it) }
+                epgRunnable = Runnable {
+                    val streamId = item.streamId?.toString() ?: ""
+                    if (streamId.isNotEmpty()) {
+                        NetworkModule.api.getShortEpg(prefs.user, prefs.pass, streamId = streamId, limit = 12).enqueue(object : Callback<EpgResponse> {
+                            override fun onResponse(call: Call<EpgResponse>, response: Response<EpgResponse>) {
+                                val listings = response.body()?.epgListings ?: emptyList()
+                                val currentTime = System.currentTimeMillis()
+                                val validListings = listings.filter { program ->
+                                    val endTime = parseEpgTime(program.end, program.stopTimestamp)
+                                    endTime == 0L || endTime > (currentTime - 600000L)
+                                }
+
+                                runOnUiThread {
+                                    if (validListings.isNotEmpty()) {
+                                        val current = validListings[0]
+                                        val next1 = validListings.getOrNull(1)
+                                        val next2 = validListings.getOrNull(2)
+                                        val next3 = validListings.getOrNull(3)
+                                        val next4 = validListings.getOrNull(4)
+                                        val next5 = validListings.getOrNull(5)
+
+                                        val curStart = extractTime(current.start, current.startTimestamp)
+                                        val curEnd = extractTime(current.end, current.stopTimestamp)
+                                        tvCurrent?.text = "IN ONDA: ${current.decodedTitle} ($curStart - $curEnd)"
+
+                                        val nextViews = arrayOf(tvNext, tvNext2, tvNext3, tvNext4, tvNext5)
+                                        val nextItems = arrayOf(next1, next2, next3, next4, next5)
+                                        val labels = arrayOf("A SEGUIRE: ", "POI: ", "PIÙ TARDI: ", "", "")
+
+                                        for (i in nextViews.indices) {
+                                            val view = nextViews[i]
+                                            val itemProg = nextItems[i]
+                                            if (view != null) {
+                                                if (itemProg != null) {
+                                                    val start = extractTime(itemProg.start, itemProg.startTimestamp)
+                                                    val end = extractTime(itemProg.end, itemProg.stopTimestamp)
+                                                    val prefix = labels.getOrElse(i) { "" }
+                                                    view.text = "$prefix${itemProg.decodedTitle} ($start - $end)"
+                                                    view.visibility = View.VISIBLE
+                                                } else {
+                                                    view.visibility = View.GONE
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        tvCurrent?.text = "IN ONDA: Nessun dato EPG disponibile"
+                                        tvNext?.visibility = View.GONE
+                                        tvNext2?.visibility = View.GONE
+                                        tvNext3?.visibility = View.GONE
+                                        tvNext4?.visibility = View.GONE
+                                        tvNext5?.visibility = View.GONE
+                                    }
+                                }
+                            }
+                            override fun onFailure(call: Call<EpgResponse>, t: Throwable) {
+                                runOnUiThread {
+                                    tvCurrent?.text = "IN ONDA: Nessun dato EPG disponibile"
+                                    tvNext?.visibility = View.GONE
+                                    tvNext2?.visibility = View.GONE
+                                    tvNext3?.visibility = View.GONE
+                                    tvNext4?.visibility = View.GONE
+                                    tvNext5?.visibility = View.GONE
+                                }
+                            }
+                        })
+                    } else {
+                        tvCurrent?.text = "IN ONDA: Nessun dato EPG disponibile"
+                        tvNext?.visibility = View.GONE
+                        tvNext2?.visibility = View.GONE
+                        tvNext3?.visibility = View.GONE
+                        tvNext4?.visibility = View.GONE
+                        tvNext5?.visibility = View.GONE
+                    }
+                }
+                epgHandler.postDelayed(epgRunnable!!, 350)
+            } else {
+                findViewById<View>(R.id.ll_epg_preview)?.visibility = View.GONE
+            }
         }, onLongClick = { item ->
             val id = item.streamId?.toString() ?: item.seriesId?.toString() ?: ""
             
@@ -341,5 +457,40 @@ class ContentActivity : FragmentActivity() {
                 }
             }
         })
+    }
+
+    private fun parseEpgTime(rawTime: String?, rawTimestamp: Long?): Long {
+        if (rawTimestamp != null && rawTimestamp > 0) {
+            return if (rawTimestamp > 10000000000L) rawTimestamp else rawTimestamp * 1000
+        }
+        if (!rawTime.isNullOrEmpty()) {
+            try {
+                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ITALY)
+                val date = sdf.parse(rawTime)
+                if (date != null) return date.time
+            } catch (_: Exception) {}
+        }
+        return 0L
+    }
+
+    private fun extractTime(rawTime: String?, rawTimestamp: Long?): String {
+        if (rawTimestamp != null && rawTimestamp > 0) {
+            val ms = if (rawTimestamp > 10000000000L) rawTimestamp else rawTimestamp * 1000
+            return SimpleDateFormat("HH:mm", Locale.ITALY).format(Date(ms))
+        }
+        if (!rawTime.isNullOrEmpty()) {
+            if (rawTime.length >= 16) {
+                return rawTime.substring(11, 16)
+            }
+            try {
+                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ITALY)
+                val date = sdf.parse(rawTime)
+                if (date != null) {
+                    return SimpleDateFormat("HH:mm", Locale.ITALY).format(date)
+                }
+            } catch (_: Exception) {}
+            return rawTime
+        }
+        return "--:--"
     }
 }

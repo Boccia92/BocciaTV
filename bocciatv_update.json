@@ -1,6 +1,6 @@
 {
-  "versionCode": 417,
-  "versionName": "17.6",
+  "versionCode": 418,
+  "versionName": "17.7",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ottimizzata la navigazione EPG con telecomando: pulsante 'Ricorda' completamente focusabile e cliccabile.\n- Filtro eventi EPG passati (mostra solo programmi in onda e futuri) con formato orario pulito e leggibile (es. Oggi / Domani HH:mm).\n- Gestione completa notifiche promemoria (AlarmManager, BootReceiver e redirect diretto al canale nel player).\n- Versione 17.6."
+  "releaseNotes": "- Implementata la nuova fascia informativa EPG (Footer Overlay) in basso a destra nella schermata dei canali Live TV.\n- Visualizzazione estesa fino a 6 programmi in successione (In onda + 5 futuri) con orari formattati puliti (HH:mm) edebounce di 350ms al cambio focus.\n- Versione 17.7."
 }
