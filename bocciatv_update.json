@@ -1,6 +1,6 @@
 {
-  "versionCode": 413,
-  "versionName": "17.2",
+  "versionCode": 414,
+  "versionName": "17.3",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ripristinata la logica originale stabile e pulita della selezione delle categorie tramite click (onClick).\n- Versione 17.2."
+  "releaseNotes": "- Risolto il bug di persistenza multipla del focus/sfondo attivo nella barra laterale delle categorie (chiamata a notifyDataSetChanged su onClick per aggiornare correttamente lo stato di selezione).\n- Versione 17.3."
 }

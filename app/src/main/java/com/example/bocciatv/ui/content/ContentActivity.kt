@@ -178,6 +178,7 @@ class ContentActivity : FragmentActivity() {
                 currentCatId = item.id
                 findViewById<EditText>(R.id.et_search).text.clear()
                 applyFilters(focusStreams = true)
+                catAdapter.notifyDataSetChanged()
             },
             enableZoom = false
         )
