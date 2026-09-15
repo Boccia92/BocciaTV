@@ -51,6 +51,7 @@ class ContentActivity : FragmentActivity() {
     
     private var masterList = emptyList<StreamItem>()
     private var currentCatId: String? = CAT_FAVORITES
+    private var activeCatId: String? = CAT_FAVORITES
     private var currentSearch: String = ""
     private var isAlphabeticalSort = false
 
@@ -152,11 +153,11 @@ class ContentActivity : FragmentActivity() {
                 val tv = v.findViewById<TextView>(R.id.tv_name)
                 tv.text = item.name
 
-                val isSelected = item.id == currentCatId
+                val isActive = item.id == activeCatId
                 val isFocused = v.hasFocus()
 
                 when {
-                    isFocused && isSelected -> {
+                    isFocused && isActive -> {
                         v.setBackgroundResource(R.drawable.category_focused_active_bg)
                         tv.setTextColor(Color.BLACK)
                     }
@@ -164,7 +165,7 @@ class ContentActivity : FragmentActivity() {
                         v.setBackgroundResource(R.drawable.category_focused_bg)
                         tv.setTextColor(Color.BLACK)
                     }
-                    isSelected -> {
+                    isActive -> {
                         v.setBackgroundResource(R.drawable.category_active_bg)
                         tv.setTextColor(Color.WHITE)
                     }
@@ -175,9 +176,18 @@ class ContentActivity : FragmentActivity() {
                 }
             },
             onClick = { item ->
+                activeCatId = item.id
                 currentCatId = item.id
                 findViewById<EditText>(R.id.et_search).text.clear()
                 applyFilters(focusStreams = true)
+                catAdapter.notifyDataSetChanged()
+            },
+            onFocus = { item ->
+                if (currentCatId != item.id) {
+                    currentCatId = item.id
+                    applyFilters()
+                    catAdapter.notifyDataSetChanged()
+                }
             },
             enableZoom = false
         )
