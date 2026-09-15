@@ -87,7 +87,11 @@
 
         <receiver
             android:name=".utils.ReminderReceiver"
-            android:exported="false" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.bocciatv.ACTION_REMINDER" />
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name=".utils.BootReceiver"

@@ -1,6 +1,6 @@
 {
-  "versionCode": 416,
-  "versionName": "17.5",
+  "versionCode": 417,
+  "versionName": "17.6",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Implementata la sincronizzazione reale delle categorie e flussi tramite ContentActivity.shouldRefresh e query Xtream anti-cache (_t timestamp).\n- Log di debug SYNC_DEBUG ('Database locale azzerato' e 'Nuove categorie ricevute: X').\n- Versione 17.5."
+  "releaseNotes": "- Ottimizzata la navigazione EPG con telecomando: pulsante 'Ricorda' completamente focusabile e cliccabile.\n- Filtro eventi EPG passati (mostra solo programmi in onda e futuri) con formato orario pulito e leggibile (es. Oggi / Domani HH:mm).\n- Gestione completa notifiche promemoria (AlarmManager, BootReceiver e redirect diretto al canale nel player).\n- Versione 17.6."
 }

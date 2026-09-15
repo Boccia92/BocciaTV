@@ -46,6 +46,7 @@ import com.example.bocciatv.utils.DisplayUtils
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.SimpleDateFormat
 import java.util.*
 
 @UnstableApi
@@ -393,7 +394,50 @@ class PlayerActivity : FragmentActivity() {
         })
     }
 
+    private fun parseEpgTime(rawTime: String?, rawTimestamp: Long?): Long {
+        if (rawTimestamp != null && rawTimestamp > 0) {
+            return if (rawTimestamp > 10000000000L) rawTimestamp else rawTimestamp * 1000
+        }
+        if (!rawTime.isNullOrEmpty()) {
+            try {
+                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ITALY)
+                val date = sdf.parse(rawTime)
+                if (date != null) return date.time
+            } catch (_: Exception) {}
+        }
+        return 0L
+    }
+
+    private fun formatEpgTimeDisplay(startRaw: String?, startTs: Long?, endRaw: String?, endTs: Long?): String {
+        val startMs = parseEpgTime(startRaw, startTs)
+        val endMs = parseEpgTime(endRaw, endTs)
+        if (startMs <= 0 || endMs <= 0) return "${startRaw ?: "--:--"} - ${endRaw ?: "--:--"}"
+
+        val calendarStart = Calendar.getInstance().apply { timeInMillis = startMs }
+        val today = Calendar.getInstance()
+
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.ITALY)
+        val startTimeStr = timeFormat.format(Date(startMs))
+        val endTimeStr = timeFormat.format(Date(endMs))
+
+        val dayPrefix = when {
+            calendarStart.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) &&
+            calendarStart.get(Calendar.YEAR) == today.get(Calendar.YEAR) -> "Oggi"
+            calendarStart.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) + 1 &&
+            calendarStart.get(Calendar.YEAR) == today.get(Calendar.YEAR) -> "Domani"
+            else -> SimpleDateFormat("dd/MM", Locale.ITALY).format(Date(startMs))
+        }
+
+        return "$dayPrefix $startTimeStr - $endTimeStr"
+    }
+
     private fun showEpgDialogUi(listings: List<EpgProgram>) {
+        val currentTime = System.currentTimeMillis()
+        val filteredListings = listings.filter { program ->
+            val endTime = parseEpgTime(program.end, program.stopTimestamp)
+            endTime == 0L || endTime > (currentTime - 600000L)
+        }
+
         val rv = RecyclerView(this).apply {
             layoutManager = LinearLayoutManager(this@PlayerActivity)
             setPadding(24, 24, 24, 24)
@@ -408,17 +452,16 @@ class PlayerActivity : FragmentActivity() {
                 val tvDesc = v.findViewById<TextView>(R.id.tv_epg_prog_desc)
                 val btnItemReminder = v.findViewById<Button>(R.id.btn_item_reminder)
 
-                tvTime.text = "${item.start ?: "--:--"} - ${item.end ?: "--:--"}"
+                tvTime.text = formatEpgTimeDisplay(item.start, item.startTimestamp, item.end, item.stopTimestamp)
                 tvTitle.text = item.decodedTitle
                 tvDesc.text = item.decodedDescription
 
-                val eventId = item.id ?: "${currentMediaId}_${item.decodedTitle}"
+                val eventId = item.id ?: "${currentMediaId}_${item.decodedTitle}_${item.start}"
                 val isSet = prefs.isReminderSet(eventId)
                 btnItemReminder.text = if (isSet) "🔔 Annulla" else "🔔 Ricorda"
 
                 btnItemReminder.setOnClickListener {
-                    val rawTs = item.startTimestamp ?: 0L
-                    val startTime = if (rawTs > 10000000000L) rawTs else rawTs * 1000
+                    val startTime = parseEpgTime(item.start, item.startTimestamp)
                     val channelName = intent.getStringExtra("name") ?: "Canale TV"
                     val streamUrl = intent.getStringExtra("url") ?: ""
                     val currentId = currentMediaId ?: "unknown"
@@ -449,7 +492,7 @@ class PlayerActivity : FragmentActivity() {
         )
 
         rv.adapter = adapter
-        adapter.update(listings)
+        adapter.update(filteredListings)
 
         AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("Guida EPG - ${intent.getStringExtra("name") ?: "Canale TV"}")
