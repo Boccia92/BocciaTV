@@ -135,7 +135,7 @@ class ContentActivity : FragmentActivity() {
         filterRunnable = Runnable {
             Thread {
                 var filtered = if (search.isNotEmpty()) {
-                    masterList.filter { it.name?.contains(search, ignoreCase = true) == true }
+                    masterList.filter { it.name?.contains(search, ignoreCase = true) == true }.take(500)
                 } else if (catId == CAT_FAVORITES) {
                     val favIds = prefs.getFavorites(currentType)
                     masterList.filter { 
