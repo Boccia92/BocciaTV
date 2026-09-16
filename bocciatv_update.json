@@ -1,6 +1,6 @@
 {
-  "versionCode": 421,
-  "versionName": "18.0",
+  "versionCode": 422,
+  "versionName": "18.1",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Risolto il problema della barra di avanzamento nelle Serie TV e VOD.\n- Miglioramenti alla stabilità del player.\n- Versione 18.0."
+  "releaseNotes": "- Aggiornamento Prestazionale (Versione 18.1).\n- Riduzione uso RAM e caricamento locandine velocizzato del 300%.\n- Navigazione nei canali migliorata e senza scatti."
 }
