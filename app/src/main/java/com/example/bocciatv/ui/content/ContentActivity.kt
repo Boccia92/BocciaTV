@@ -135,7 +135,9 @@ class ContentActivity : FragmentActivity() {
         filterRunnable = Runnable {
             Thread {
                 var filtered = if (search.isNotEmpty()) {
-                    masterList.filter { it.name?.contains(search, ignoreCase = true) == true }.take(500)
+                    val searchResult = masterList.filter { it.name?.contains(search, ignoreCase = true) == true }.take(500)
+                    Log.d("SEARCH_DEBUG", "Query: '$search' - Totale trovati: ${searchResult.size}")
+                    searchResult
                 } else if (catId == CAT_FAVORITES) {
                     val favIds = prefs.getFavorites(currentType)
                     masterList.filter { 
@@ -157,8 +159,9 @@ class ContentActivity : FragmentActivity() {
                     filtered = filtered.sortedBy { it.name?.lowercase() ?: "" }
                 }
 
+                val finalData = filtered.toList()
                 runOnUiThread {
-                    streamAdapter.update(filtered)
+                    streamAdapter.update(finalData)
                     if (focusStreams) {
                         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
                         rvStreams.post { 
