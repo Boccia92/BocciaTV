@@ -1,6 +1,6 @@
 {
-  "versionCode": 420,
-  "versionName": "17.9",
+  "versionCode": 421,
+  "versionName": "18.0",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Risolto il blocco e il crash durante la ricerca (implementato debounce anti-spam di 400ms per evitare l'intasamento della CPU/memoria durante la digitazione veloce e il filtraggio di migliaia di canali).\n- Versione 17.9."
+  "releaseNotes": "- Risolto il problema della barra di avanzamento nelle Serie TV e VOD.\n- Miglioramenti alla stabilità del player.\n- Versione 18.0."
 }
