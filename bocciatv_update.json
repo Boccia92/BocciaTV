@@ -1,6 +1,6 @@
 {
-  "versionCode": 419,
-  "versionName": "17.8",
+  "versionCode": 420,
+  "versionName": "17.9",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Aggiornato il logo dell'app, il banner e lo sfondo della dashboard con la nuova grafica personalizzata (logo dorato 'B').\n- Versione 17.8."
+  "releaseNotes": "- Risolto il blocco e il crash durante la ricerca (implementato debounce anti-spam di 400ms per evitare l'intasamento della CPU/memoria durante la digitazione veloce e il filtraggio di migliaia di canali).\n- Versione 17.9."
 }

@@ -123,45 +123,52 @@ class ContentActivity : FragmentActivity() {
         })
     }
 
+    private val filterHandler = Handler(Looper.getMainLooper())
+    private var filterRunnable: Runnable? = null
+
     private fun applyFilters(focusStreams: Boolean = false) {
         val search = currentSearch
         val catId = currentCatId
         val currentType = type
 
-        Thread {
-            var filtered = if (search.isNotEmpty()) {
-                masterList.filter { it.name?.contains(search, ignoreCase = true) == true }
-            } else if (catId == CAT_FAVORITES) {
-                val favIds = prefs.getFavorites(currentType)
-                masterList.filter { 
-                    val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
-                    favIds.contains(id)
+        filterRunnable?.let { filterHandler.removeCallbacks(it) }
+        filterRunnable = Runnable {
+            Thread {
+                var filtered = if (search.isNotEmpty()) {
+                    masterList.filter { it.name?.contains(search, ignoreCase = true) == true }
+                } else if (catId == CAT_FAVORITES) {
+                    val favIds = prefs.getFavorites(currentType)
+                    masterList.filter { 
+                        val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
+                        favIds.contains(id)
+                    }
+                } else if (catId == CAT_RECENT) {
+                    val recentIds = prefs.getRecentList()
+                    recentIds.mapNotNull { id ->
+                        masterList.find { (it.streamId?.toString() ?: it.seriesId?.toString() ?: "") == id }
+                    }
+                } else if (catId != null) {
+                    masterList.filter { it.categoryId == catId }
+                } else {
+                    masterList
                 }
-            } else if (catId == CAT_RECENT) {
-                val recentIds = prefs.getRecentList()
-                recentIds.mapNotNull { id ->
-                    masterList.find { (it.streamId?.toString() ?: it.seriesId?.toString() ?: "") == id }
+
+                if (isAlphabeticalSort) {
+                    filtered = filtered.sortedBy { it.name?.lowercase() ?: "" }
                 }
-            } else if (catId != null) {
-                masterList.filter { it.categoryId == catId }
-            } else {
-                masterList
-            }
 
-            if (isAlphabeticalSort) {
-                filtered = filtered.sortedBy { it.name?.lowercase() ?: "" }
-            }
-
-            runOnUiThread {
-                streamAdapter.update(filtered)
-                if (focusStreams) {
-                    val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
-                    rvStreams.post { 
-                        rvStreams.requestFocus() 
+                runOnUiThread {
+                    streamAdapter.update(filtered)
+                    if (focusStreams) {
+                        val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
+                        rvStreams.post { 
+                            rvStreams.requestFocus() 
+                        }
                     }
                 }
-            }
-        }.start()
+            }.start()
+        }
+        filterHandler.postDelayed(filterRunnable!!, 400)
     }
 
     private fun setupLists() {
