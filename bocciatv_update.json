@@ -1,6 +1,6 @@
 {
-  "versionCode": 423,
-  "versionName": "18.2",
+  "versionCode": 424,
+  "versionName": "18.3",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ripristino fluidità massima (60 FPS).\n- Ottimizzazione rendering locandine.\n- Versione 18.2."
+  "releaseNotes": "- Ripristinata l'evidenziazione visiva del focus nella barra laterale delle categorie.\n- Fluidità a 60 FPS garantita su liste di grandi dimensioni.\n- Versione 18.3."
 }
