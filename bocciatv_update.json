@@ -1,6 +1,6 @@
 {
-  "versionCode": 424,
-  "versionName": "18.3",
+  "versionCode": 425,
+  "versionName": "18.4",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ripristinata l'evidenziazione visiva del focus nella barra laterale delle categorie.\n- Fluidità a 60 FPS garantita su liste di grandi dimensioni.\n- Versione 18.3."
+  "releaseNotes": "- Integrazione definitiva e nativa dell'interfaccia IPTV Smarters Live TV.\n- Allineamento grafico e cromatico totale con le sezioni Film e Serie TV.\n- Ottimizzazione navigazione D-pad EPG e blocco del rimbalzo del cursore.\n- Versione 18.4."
 }
