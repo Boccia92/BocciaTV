@@ -84,7 +84,28 @@ class SeriesDetailsActivity : FragmentActivity() {
             }
         }, { seasonKey ->
             showEpisodes(seasonKey)
-        }, enableZoom = false)
+        }, enableZoom = false, onFocusChange = { v, hasFocus, item ->
+            val tv = v.findViewById<TextView>(R.id.tv_name)
+            val isSelected = item == currentSeasonKey
+            when {
+                hasFocus && isSelected -> {
+                    v.setBackgroundResource(R.drawable.category_focused_active_bg)
+                    tv.setTextColor(Color.BLACK)
+                }
+                hasFocus -> {
+                    v.setBackgroundResource(R.drawable.category_focused_bg)
+                    tv.setTextColor(Color.BLACK)
+                }
+                isSelected -> {
+                    v.setBackgroundResource(R.drawable.category_active_bg)
+                    tv.setTextColor(Color.WHITE)
+                }
+                else -> {
+                    v.setBackgroundResource(android.R.color.transparent)
+                    tv.setTextColor(Color.WHITE)
+                }
+            }
+        })
         rvSeasons.layoutManager = LinearLayoutManager(this)
         rvSeasons.adapter = seasonAdapter
 

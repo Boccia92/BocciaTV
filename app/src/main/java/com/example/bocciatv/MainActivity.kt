@@ -19,6 +19,7 @@ import com.example.bocciatv.data.model.Category
 import com.example.bocciatv.data.model.UserAuth
 import com.example.bocciatv.data.network.NetworkModule
 import com.example.bocciatv.ui.content.ContentActivity
+import com.example.bocciatv.ui.content.LiveSmartersActivity
 import com.example.bocciatv.ui.settings.SettingsActivity
 import com.example.bocciatv.utils.DisplayUtils
 import com.example.bocciatv.utils.UpdateManager
@@ -54,7 +55,7 @@ class MainActivity : FragmentActivity() {
         updateExpiryUI()
 
         val btnLive = findViewById<Button>(R.id.btn_live)
-        btnLive.setOnClickListener { start(ContentActivity.TYPE_LIVE) }
+        btnLive.setOnClickListener { startActivity(Intent(this, LiveSmartersActivity::class.java)) }
         btnLive.requestFocus()
 
         findViewById<Button>(R.id.btn_vod).setOnClickListener { start(ContentActivity.TYPE_VOD) }

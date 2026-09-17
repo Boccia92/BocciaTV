@@ -14,10 +14,11 @@ class GenericAdapter<T>(
     private val onClick: (T) -> Unit,
     private val onFocus: ((T) -> Unit)? = null,
     private val onLongClick: ((T) -> Unit)? = null,
-    private val enableZoom: Boolean = true
+    private val enableZoom: Boolean = true,
+    private val onFocusChange: ((View, Boolean, T) -> Unit)? = null,
 ) : RecyclerView.Adapter<GenericAdapter.ViewHolder>() {
 
-    private var items = emptyList<T>()
+    var items = emptyList<T>()
 
     fun update(newItems: List<T>) {
         items = newItems
@@ -32,11 +33,29 @@ class GenericAdapter<T>(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         bind(holder.itemView, item)
-        holder.itemView.setOnClickListener { onClick(item) }
+        
+        holder.itemView.setOnClickListener {
+            val pos = holder.bindingAdapterPosition
+            if (pos != RecyclerView.NO_POSITION) {
+                val currentItem = items.getOrNull(pos)
+                if (currentItem != null) {
+                    holder.itemView.requestFocus()
+                    onClick(currentItem)
+                }
+            }
+        }
+        
         holder.itemView.setOnLongClickListener { 
-            onLongClick?.invoke(item)
+            val pos = holder.bindingAdapterPosition
+            if (pos != RecyclerView.NO_POSITION) {
+                val currentItem = items.getOrNull(pos)
+                if (currentItem != null) {
+                    onLongClick?.invoke(currentItem)
+                }
+            }
             true
         }
+        
         holder.itemView.setOnFocusChangeListener { v, hasFocus ->
             if (enableZoom) {
                 if (hasFocus) {
@@ -45,11 +64,14 @@ class GenericAdapter<T>(
                     v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150).start()
                 }
             }
-            if (hasFocus) {
-                onFocus?.invoke(item)
+            val pos = holder.bindingAdapterPosition
+            if (pos != RecyclerView.NO_POSITION) {
+                val currentItem = items.getOrNull(pos)
+                if (currentItem != null) {
+                    if (hasFocus) onFocus?.invoke(currentItem)
+                    onFocusChange?.invoke(v, hasFocus, currentItem)
+                }
             }
-            // Re-bind view state to update background color & text color on focus change
-            bind(v, item)
         }
     }
 

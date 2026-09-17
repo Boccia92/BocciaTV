@@ -132,11 +132,12 @@ class ContentActivity : FragmentActivity() {
         val currentType = type
 
         filterRunnable?.let { filterHandler.removeCallbacks(it) }
+        
         filterRunnable = Runnable {
+            // Esegui il calcolo pesante fuori dal main thread in maniera sicura (singolo executor limitato)
             Thread {
-                var filtered = if (search.isNotEmpty()) {
+                val filtered = if (search.isNotEmpty()) {
                     val searchResult = masterList.filter { it.name?.contains(search, ignoreCase = true) == true }.take(500)
-                    Log.d("SEARCH_DEBUG", "Query: '$search' - Totale trovati: ${searchResult.size}")
                     searchResult
                 } else if (catId == CAT_FAVORITES) {
                     val favIds = prefs.getFavorites(currentType)
@@ -155,23 +156,25 @@ class ContentActivity : FragmentActivity() {
                     masterList
                 }
 
-                if (isAlphabeticalSort) {
-                    filtered = filtered.sortedBy { it.name?.lowercase() ?: "" }
+                val sortedAndFinal = if (isAlphabeticalSort) {
+                    filtered.sortedBy { it.name?.lowercase() ?: "" }.toList()
+                } else {
+                    filtered.toList()
                 }
 
-                val finalData = filtered.toList()
                 runOnUiThread {
-                    streamAdapter.update(finalData)
+                    // Update views on main thread
+                    streamAdapter.update(sortedAndFinal)
                     if (focusStreams) {
                         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
-                        rvStreams.post { 
-                            rvStreams.requestFocus() 
-                        }
+                        rvStreams.post { rvStreams.requestFocus() }
                     }
                 }
             }.start()
         }
-        filterHandler.postDelayed(filterRunnable!!, 400)
+        
+        // Anti-spam debouncing (ritardo prima di avviare il filtro)
+        filterHandler.postDelayed(filterRunnable!!, 300)
     }
 
     private fun setupLists() {
@@ -210,14 +213,36 @@ class ContentActivity : FragmentActivity() {
                 applyFilters(focusStreams = true)
                 catAdapter.notifyDataSetChanged()
             },
-            enableZoom = false
+            enableZoom = false,
+            onFocusChange = { v, hasFocus, item ->
+                val tv = v.findViewById<TextView>(R.id.tv_name)
+                val isSelected = item.id == currentCatId
+                when {
+                    hasFocus && isSelected -> {
+                        v.setBackgroundResource(R.drawable.category_focused_active_bg)
+                        tv.setTextColor(Color.BLACK)
+                    }
+                    hasFocus -> {
+                        v.setBackgroundResource(R.drawable.category_focused_bg)
+                        tv.setTextColor(Color.BLACK)
+                    }
+                    isSelected -> {
+                        v.setBackgroundResource(R.drawable.category_active_bg)
+                        tv.setTextColor(Color.WHITE)
+                    }
+                    else -> {
+                        v.setBackgroundResource(android.R.color.transparent)
+                        tv.setTextColor(Color.WHITE)
+                    }
+                }
+            }
         )
         rvCats.layoutManager = LinearLayoutManager(this)
         rvCats.adapter = catAdapter
 
         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
         rvStreams.setHasFixedSize(true)
-        rvStreams.setItemViewCacheSize(20)
+        rvStreams.setItemViewCacheSize(25)
 
         streamAdapter = GenericAdapter(R.layout.item_grid, { v, item ->
             v.findViewById<TextView>(R.id.tv_name).text = item.name
@@ -226,9 +251,8 @@ class ContentActivity : FragmentActivity() {
             val iconUrl = item.icon ?: item.cover
             if (!iconUrl.isNullOrEmpty()) {
                 Glide.with(this)
-                    .asBitmap()
                     .load(iconUrl)
-                    .format(DecodeFormat.PREFER_ARGB_8888)
+                    .override(300, 450) // Resizing per risparmiare moltissima RAM sulle liste enormi
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.movie)
                     .error(R.drawable.movie)

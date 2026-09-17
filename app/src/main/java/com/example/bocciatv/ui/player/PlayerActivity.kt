@@ -29,6 +29,8 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
@@ -234,7 +236,14 @@ class PlayerActivity : FragmentActivity() {
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
             .setEnableDecoderFallback(true)
 
-        player = ExoPlayer.Builder(this, renderersFactory).build().also {
+        val extractorsFactory = DefaultExtractorsFactory()
+            .setConstantBitrateSeekingEnabled(true)
+            
+        val mediaSourceFactory = DefaultMediaSourceFactory(this, extractorsFactory)
+
+        player = ExoPlayer.Builder(this, renderersFactory)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .build().also {
             playerView.player = it
 
             val mediaItems = urls.map { url -> MediaItem.fromUri(url) }
@@ -738,7 +747,11 @@ class PlayerActivity : FragmentActivity() {
 
     private fun configurePlayerControlsForMedia() {
         val currentIntent = getIntent()
-        val isLive = currentIntent.getStringArrayExtra("urls") != null || currentIntent.getStringExtra("url")?.contains(".ts") == true
+        val urlsArray = currentIntent.getStringArrayExtra("urls")
+        val singleUrl = currentIntent.getStringExtra("url")
+        
+        // E' un live stream solo se NON è una serie (che passa l'array urls) e l'url contiene .ts o /live/
+        val isLive = urlsArray == null && (singleUrl?.contains(".ts") == true || singleUrl?.contains("/live/") == true)
 
         val timeBar = findControllerView("exo_progress")
         val btnRew = findControllerView("exo_rew")
