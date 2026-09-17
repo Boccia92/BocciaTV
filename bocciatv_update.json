@@ -1,6 +1,6 @@
 {
-  "versionCode": 422,
-  "versionName": "18.1",
+  "versionCode": 423,
+  "versionName": "18.2",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Aggiornamento Prestazionale (Versione 18.1).\n- Riduzione uso RAM e caricamento locandine velocizzato del 300%.\n- Navigazione nei canali migliorata e senza scatti."
+  "releaseNotes": "- Ripristino fluidità massima (60 FPS).\n- Ottimizzazione rendering locandine.\n- Versione 18.2."
 }
