@@ -1,6 +1,6 @@
 {
-  "versionCode": 426,
-  "versionName": "18.5",
+  "versionCode": 427,
+  "versionName": "18.6",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Fix crash prevention per flussi instabili o offline (canali adulti/pesanti).\n- Integrazione nativa IPTV Smarters Live TV e allineamento UI Gold.\n- Versione 18.5."
+  "releaseNotes": "- Fix definitivo per la stabilità e la prevenzione crash su flussi pesanti o offline (v18.6).\n- Ottimizzazione navigazione D-pad EPG e liste.\n- Versione 18.6."
 }
