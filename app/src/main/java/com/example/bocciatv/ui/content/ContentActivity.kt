@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
@@ -131,10 +132,15 @@ class ContentActivity : FragmentActivity() {
         val catId = currentCatId
         val currentType = type
 
+        // Svuotamento immediato dello stato per evitare di vedere le vecchie locandine
+        streamAdapter.update(emptyList())
+        val pbLoading = findViewById<ProgressBar>(R.id.pb_loading)
+        pbLoading?.visibility = View.VISIBLE
+
         filterRunnable?.let { filterHandler.removeCallbacks(it) }
         
         filterRunnable = Runnable {
-            // Esegui il calcolo pesante fuori dal main thread in maniera sicura (singolo executor limitato)
+            // Esegui il calcolo pesante fuori dal main thread in maniera sicura
             Thread {
                 val filtered = if (search.isNotEmpty()) {
                     val searchResult = masterList.filter { it.name?.contains(search, ignoreCase = true) == true }.take(500)
@@ -163,7 +169,7 @@ class ContentActivity : FragmentActivity() {
                 }
 
                 runOnUiThread {
-                    // Update views on main thread
+                    pbLoading?.visibility = View.GONE
                     streamAdapter.update(sortedAndFinal)
                     if (focusStreams) {
                         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
@@ -173,8 +179,8 @@ class ContentActivity : FragmentActivity() {
             }.start()
         }
         
-        // Anti-spam debouncing (ritardo prima di avviare il filtro)
-        filterHandler.postDelayed(filterRunnable!!, 300)
+        // Anti-spam debouncing (ritardo ridotto per massima reattività)
+        filterHandler.postDelayed(filterRunnable!!, 150)
     }
 
     private fun setupLists() {

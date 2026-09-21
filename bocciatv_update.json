@@ -1,6 +1,6 @@
 {
-  "versionCode": 428,
-  "versionName": "18.7",
+  "versionCode": 429,
+  "versionName": "18.8",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ottimizzazione avanzata della memoria e stabilità generale delle categorie.\n- Gestione errori ExoPlayer e prevenzione crash su flussi instabili/offline.\n- Versione 18.7."
+  "releaseNotes": "- Svuotamento immediato della griglia e indicatore di caricamento (CircularProgress) al cambio categoria.\n- Transizioni fluide e reattive senza sovrapposizione di vecchie locandine.\n- Versione 18.8."
 }
