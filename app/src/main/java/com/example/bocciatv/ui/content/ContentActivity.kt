@@ -132,8 +132,8 @@ class ContentActivity : FragmentActivity() {
         val catId = currentCatId
         val currentType = type
 
-        // Svuotamento immediato dello stato per evitare di vedere le vecchie locandine
-        streamAdapter.update(emptyList())
+        val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
+        rvStreams.animate().alpha(0.4f).setDuration(120).start()
         val pbLoading = findViewById<ProgressBar>(R.id.pb_loading)
         pbLoading?.visibility = View.VISIBLE
 
@@ -170,17 +170,17 @@ class ContentActivity : FragmentActivity() {
 
                 runOnUiThread {
                     pbLoading?.visibility = View.GONE
+                    rvStreams.animate().alpha(1.0f).setDuration(120).start()
                     streamAdapter.update(sortedAndFinal)
                     if (focusStreams) {
-                        val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
                         rvStreams.post { rvStreams.requestFocus() }
                     }
                 }
             }.start()
         }
         
-        // Anti-spam debouncing (ritardo ridotto per massima reattività)
-        filterHandler.postDelayed(filterRunnable!!, 150)
+        // Anti-spam debouncing (ritardo ottimizzato per massima reattività)
+        filterHandler.postDelayed(filterRunnable!!, 100)
     }
 
     private fun setupLists() {

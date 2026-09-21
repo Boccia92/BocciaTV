@@ -1,6 +1,6 @@
 {
-  "versionCode": 429,
-  "versionName": "18.8",
+  "versionCode": 430,
+  "versionName": "18.9",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Svuotamento immediato della griglia e indicatore di caricamento (CircularProgress) al cambio categoria.\n- Transizioni fluide e reattive senza sovrapposizione di vecchie locandine.\n- Versione 18.8."
+  "releaseNotes": "- Transizioni fluide con effetto dissolvenza (fade) e progress bar al cambio categoria.\n- Esperienza di navigazione a 60 FPS senza sfarfallii o blocchi.\n- Versione 18.9."
 }
