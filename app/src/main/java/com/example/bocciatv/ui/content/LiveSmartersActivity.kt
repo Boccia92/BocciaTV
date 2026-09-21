@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -41,6 +42,8 @@ import java.util.Date
 import java.util.Locale
 import androidx.media3.common.util.UnstableApi
 import android.graphics.Color
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import com.example.bocciatv.data.model.ReminderItem
 import com.example.bocciatv.utils.ReminderScheduler
 import java.util.Calendar
@@ -455,12 +458,25 @@ class LiveSmartersActivity : FragmentActivity() {
         stopPlayer()
         
         val targetId = (item.streamId ?: item.seriesId ?: "").toString().trim()
-        player = ExoPlayer.Builder(this).build().apply {
-            playerView.player = this
-            val url = "http://latteax.securitysc.shop/live/${prefs.user}/${prefs.pass}/$targetId.ts"
-            setMediaItem(MediaItem.fromUri(url))
-            prepare()
-            playWhenReady = true
+        try {
+            player = ExoPlayer.Builder(this).build().apply {
+                playerView.player = this
+                val url = "http://latteax.securitysc.shop/live/${prefs.user}/${prefs.pass}/$targetId.ts"
+                setMediaItem(MediaItem.fromUri(url))
+                addListener(object : Player.Listener {
+                    override fun onPlayerError(error: PlaybackException) {
+                        Log.e("LiveSmarters", "Playback error: ${error.message}")
+                        runOnUiThread {
+                            Toast.makeText(this@LiveSmartersActivity, "Canale offline o non disponibile", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                })
+                prepare()
+                playWhenReady = true
+            }
+        } catch (e: Exception) {
+            Log.e("LiveSmarters", "Error starting player: ${e.message}")
+            Toast.makeText(this, "Errore di riproduzione del canale", Toast.LENGTH_SHORT).show()
         }
     }
 
