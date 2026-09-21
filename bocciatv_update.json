@@ -1,6 +1,6 @@
 {
-  "versionCode": 427,
-  "versionName": "18.6",
+  "versionCode": 428,
+  "versionName": "18.7",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Fix definitivo per la stabilità e la prevenzione crash su flussi pesanti o offline (v18.6).\n- Ottimizzazione navigazione D-pad EPG e liste.\n- Versione 18.6."
+  "releaseNotes": "- Ottimizzazione avanzata della memoria e stabilità generale delle categorie.\n- Gestione errori ExoPlayer e prevenzione crash su flussi instabili/offline.\n- Versione 18.7."
 }
