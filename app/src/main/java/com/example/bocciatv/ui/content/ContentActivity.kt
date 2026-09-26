@@ -332,6 +332,16 @@ class ContentActivity : FragmentActivity() {
         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
         rvStreams.setHasFixedSize(true)
         rvStreams.setItemViewCacheSize(6) // Conservativo per evitare GC overhead su Android TV / Fire Stick
+        rvStreams.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (newState == RecyclerView.SCROLL_STATE_SETTLING || newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    Glide.with(this@ContentActivity).pauseRequests()
+                } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    Glide.with(this@ContentActivity).resumeRequests()
+                }
+            }
+        })
 
         streamAdapter = GenericAdapter(R.layout.item_grid, { holder: GenericAdapter.ViewHolder, item: StreamItem ->
             holder.findViewById<TextView>(R.id.tv_name).text = item.name
