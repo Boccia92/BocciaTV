@@ -187,28 +187,28 @@ class ContentActivity : FragmentActivity() {
         val rvCats = findViewById<RecyclerView>(R.id.rv_cats)
         catAdapter = GenericAdapter(
             layoutId = R.layout.item_simple,
-            bind = { v, item ->
-                val tv = v.findViewById<TextView>(R.id.tv_name)
+            bind = { holder: GenericAdapter.ViewHolder, item: Category ->
+                val tv = holder.findViewById<TextView>(R.id.tv_name)
                 tv.text = item.name
 
                 val isSelected = item.id == currentCatId
-                val isFocused = v.hasFocus()
+                val isFocused = holder.itemView.hasFocus()
 
                 when {
                     isFocused && isSelected -> {
-                        v.setBackgroundResource(R.drawable.category_focused_active_bg)
+                        holder.itemView.setBackgroundResource(R.drawable.category_focused_active_bg)
                         tv.setTextColor(Color.BLACK)
                     }
                     isFocused -> {
-                        v.setBackgroundResource(R.drawable.category_focused_bg)
+                        holder.itemView.setBackgroundResource(R.drawable.category_focused_bg)
                         tv.setTextColor(Color.BLACK)
                     }
                     isSelected -> {
-                        v.setBackgroundResource(R.drawable.category_active_bg)
+                        holder.itemView.setBackgroundResource(R.drawable.category_active_bg)
                         tv.setTextColor(Color.WHITE)
                     }
                     else -> {
-                        v.setBackgroundResource(android.R.color.transparent)
+                        holder.itemView.setBackgroundResource(android.R.color.transparent)
                         tv.setTextColor(Color.WHITE)
                     }
                 }
@@ -250,15 +250,19 @@ class ContentActivity : FragmentActivity() {
         rvStreams.setHasFixedSize(true)
         rvStreams.setItemViewCacheSize(25)
 
-        streamAdapter = GenericAdapter(R.layout.item_grid, { v, item ->
-            v.findViewById<TextView>(R.id.tv_name).text = item.name
-            val img = v.findViewById<ImageView>(R.id.iv_thumb)
+        streamAdapter = GenericAdapter(R.layout.item_grid, { holder: GenericAdapter.ViewHolder, item: StreamItem ->
+            holder.findViewById<TextView>(R.id.tv_name).text = item.name
+            val img = holder.findViewById<ImageView>(R.id.iv_thumb)
             
             val iconUrl = item.icon ?: item.cover
             if (!iconUrl.isNullOrEmpty()) {
+                val density = resources.displayMetrics.density
+                val targetW = (105 * density).toInt()
+                val targetH = (95 * density).toInt()
+
                 Glide.with(this)
                     .load(iconUrl)
-                    .override(300, 450) // Resizing per risparmiare moltissima RAM sulle liste enormi
+                    .override(targetW, targetH)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.movie)
                     .error(R.drawable.movie)
@@ -269,17 +273,22 @@ class ContentActivity : FragmentActivity() {
             
             val id = item.streamId?.toString() ?: item.seriesId?.toString() ?: ""
             if (prefs.isWatched(id)) {
-                v.alpha = 0.5f
+                holder.itemView.alpha = 0.5f
             } else if (prefs.getPosition(id) > 0) {
-                v.alpha = 0.8f
+                holder.itemView.alpha = 0.8f
             } else {
-                v.alpha = 1.0f
+                holder.itemView.alpha = 1.0f
             }
 
-            if (prefs.isFavorite(type, id)) {
-                v.setBackgroundResource(R.drawable.card_background_fav)
-            } else {
-                v.setBackgroundResource(R.drawable.card_background)
+            val isFav = prefs.isFavorite(type, id)
+            val lastFav = holder.itemView.getTag(R.id.tv_name) as? Boolean
+            if (lastFav != isFav) {
+                holder.itemView.setTag(R.id.tv_name, isFav)
+                if (isFav) {
+                    holder.itemView.setBackgroundResource(R.drawable.card_background_fav)
+                } else {
+                    holder.itemView.setBackgroundResource(R.drawable.card_background)
+                }
             }
         }, { item ->
             if (type == TYPE_SERIES) {
@@ -416,14 +425,31 @@ class ContentActivity : FragmentActivity() {
                     .setMessage("Vuoi rimuovere questo elemento da 'Continua a Guardare'?")
                     .setPositiveButton("Rimuovi") { _, _ ->
                         prefs.removeFromRecent(id)
-                        applyFilters()
+                        val currentList = streamAdapter.items.toMutableList()
+                        val index = currentList.indexOf(item)
+                        if (index != -1) {
+                            currentList.removeAt(index)
+                            streamAdapter.update(currentList)
+                        }
                         Toast.makeText(this, "Rimosso", Toast.LENGTH_SHORT).show()
                     }
                     .setNegativeButton("Annulla", null)
                     .show()
             } else {
                 prefs.toggleFavorite(type, id)
-                applyFilters()
+                if (currentCatId == CAT_FAVORITES) {
+                    val currentList = streamAdapter.items.toMutableList()
+                    val index = currentList.indexOf(item)
+                    if (index != -1) {
+                        currentList.removeAt(index)
+                        streamAdapter.update(currentList)
+                    }
+                } else {
+                    val index = streamAdapter.items.indexOf(item)
+                    if (index != -1) {
+                        streamAdapter.notifyItemChanged(index)
+                    }
+                }
             }
         })
         rvStreams.layoutManager = GridLayoutManager(this, if (type == TYPE_LIVE) 5 else 6)

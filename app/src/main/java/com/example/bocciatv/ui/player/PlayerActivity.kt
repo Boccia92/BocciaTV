@@ -666,6 +666,7 @@ class PlayerActivity : FragmentActivity() {
         AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("Zoom Video")
             .setItems(modes) { _, which ->
+                Log.d("ZOOM_DEBUG", "Impostazione resizeMode a: ${modes[which]} (valore: ${modeValues[which]})")
                 playerView.resizeMode = modeValues[which]
                 Toast.makeText(this, "Modalità: ${modes[which]}", Toast.LENGTH_SHORT).show()
             }

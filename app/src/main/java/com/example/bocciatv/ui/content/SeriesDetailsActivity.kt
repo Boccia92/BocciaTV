@@ -57,28 +57,28 @@ class SeriesDetailsActivity : FragmentActivity() {
 
     private fun setupLists() {
         val rvSeasons = findViewById<RecyclerView>(R.id.rv_seasons)
-        seasonAdapter = GenericAdapter(R.layout.item_simple, { v, item ->
-            val tv = v.findViewById<TextView>(R.id.tv_name)
+        seasonAdapter = GenericAdapter(R.layout.item_simple, { holder: GenericAdapter.ViewHolder, item: String ->
+            val tv = holder.findViewById<TextView>(R.id.tv_name)
             tv.text = "Stagione $item"
 
             val isSelected = item == currentSeasonKey
-            val isFocused = v.hasFocus()
+            val isFocused = holder.itemView.hasFocus()
 
             when {
                 isFocused && isSelected -> {
-                    v.setBackgroundResource(R.drawable.category_focused_active_bg)
+                    holder.itemView.setBackgroundResource(R.drawable.category_focused_active_bg)
                     tv.setTextColor(Color.BLACK)
                 }
                 isFocused -> {
-                    v.setBackgroundResource(R.drawable.category_focused_bg)
+                    holder.itemView.setBackgroundResource(R.drawable.category_focused_bg)
                     tv.setTextColor(Color.BLACK)
                 }
                 isSelected -> {
-                    v.setBackgroundResource(R.drawable.category_active_bg)
+                    holder.itemView.setBackgroundResource(R.drawable.category_active_bg)
                     tv.setTextColor(Color.WHITE)
                 }
                 else -> {
-                    v.setBackgroundResource(android.R.color.transparent)
+                    holder.itemView.setBackgroundResource(android.R.color.transparent)
                     tv.setTextColor(Color.WHITE)
                 }
             }
@@ -110,8 +110,8 @@ class SeriesDetailsActivity : FragmentActivity() {
         rvSeasons.adapter = seasonAdapter
 
         val rvEpisodes = findViewById<RecyclerView>(R.id.rv_episodes)
-        episodeAdapter = GenericAdapter(R.layout.item_simple, { v, item ->
-            val tv = v.findViewById<TextView>(R.id.tv_name)
+        episodeAdapter = GenericAdapter(R.layout.item_simple, { holder: GenericAdapter.ViewHolder, item: Episode ->
+            val tv = holder.findViewById<TextView>(R.id.tv_name)
             tv.text = item.title ?: "Episodio"
             
             if (prefs.isWatched(item.id ?: "unknown")) {
