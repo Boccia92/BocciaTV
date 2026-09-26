@@ -346,9 +346,10 @@ class ContentActivity : FragmentActivity() {
 
         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
         rvStreams.setHasFixedSize(true)
-        rvStreams.layoutManager = GridLayoutManager(this, 5) // Fixed 5 columns for all types
-        rvStreams.itemAnimator = null // Disable default animations
-        rvStreams.setItemViewCacheSize(25) // Optimized cache size
+        rvStreams.setItemViewCacheSize(25) // <-- Inseriscila qui
+        rvStreams.layoutManager = GridLayoutManager(this, 5)
+        rvStreams.itemAnimator = null
+        rvStreams.recycledViewPool.setMaxRecycledViews(0, 25)
 
         rvStreams.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
