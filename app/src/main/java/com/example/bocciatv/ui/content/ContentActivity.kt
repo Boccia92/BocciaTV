@@ -77,6 +77,9 @@ class ContentActivity : FragmentActivity() {
 
     private var filterJob: Job? = null
 
+    // Zero Disk I/O in bind: preloaded in-memory sets/maps
+    private var favoritesSet = setOf<String>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val locale = Locale.ITALY
         Locale.setDefault(locale)
@@ -95,6 +98,7 @@ class ContentActivity : FragmentActivity() {
             else -> "SERIE TV"
         }
 
+        cacheUserPrefs()
         setupLists()
         setupSearch()
         
@@ -110,6 +114,7 @@ class ContentActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+        cacheUserPrefs()
         if (shouldRefresh) {
             Log.d("SYNC_DEBUG", "Database locale azzerato")
             streamsCache.clear()
@@ -130,6 +135,10 @@ class ContentActivity : FragmentActivity() {
         epgHandler.removeCallbacksAndMessages(null)
         currentEpgCall?.cancel()
         Glide.with(this).resumeRequests()
+    }
+
+    private fun cacheUserPrefs() {
+        favoritesSet = prefs.getFavorites(type)
     }
 
     private fun setupSearch() {
@@ -155,13 +164,14 @@ class ContentActivity : FragmentActivity() {
                 pbLoading?.visibility = View.VISIBLE
             }
 
+            cacheUserPrefs()
+
             val filtered = if (search.isNotEmpty()) {
                 masterList.filter { it.name?.contains(search, ignoreCase = true) == true }.take(500)
             } else if (catId == CAT_FAVORITES) {
-                val favIds = prefs.getFavorites(type)
                 masterList.filter { 
                     val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
-                    favIds.contains(id)
+                    favoritesSet.contains(id)
                 }
             } else if (catId == CAT_RECENT) {
                 val recentIds = prefs.getRecentList()
@@ -197,12 +207,12 @@ class ContentActivity : FragmentActivity() {
     private fun loadStreamsForCategory(catId: String, focusStreams: Boolean = false) {
         currentCatId = catId
         val pbLoading = findViewById<ProgressBar>(R.id.pb_loading)
+        cacheUserPrefs()
 
         if (catId == CAT_FAVORITES) {
-            val favIds = prefs.getFavorites(type)
             val filtered = masterList.filter { 
                 val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
-                favIds.contains(id)
+                favoritesSet.contains(id)
             }
             displayStreams(filtered, focusStreams)
             return
@@ -332,7 +342,10 @@ class ContentActivity : FragmentActivity() {
 
         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
         rvStreams.setHasFixedSize(true)
-        rvStreams.setItemViewCacheSize(6) // Conservativo per evitare GC overhead su Android TV / Fire Stick
+        rvStreams.layoutManager = GridLayoutManager(this, 5) // Fixed 5 columns for all types
+        rvStreams.itemAnimator = null // Disable default animations
+        rvStreams.recycledViewPool.setMaxRecycledViews(0, 25) // Pre-allocate recycled view pool
+
         rvStreams.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
@@ -344,14 +357,16 @@ class ContentActivity : FragmentActivity() {
             }
         })
 
+        // Pre-calculate target dimensions once outside the bind lambda
         val density = resources.displayMetrics.density
-        val targetW = (105 * density).toInt()
-        val targetH = (95 * density).toInt()
+        val targetW = (130 * density).toInt()
+        val targetH = (190 * density).toInt()
 
         streamAdapter = GenericAdapter(R.layout.item_grid, { holder: GenericAdapter.ViewHolder, item: StreamItem ->
             holder.findViewById<TextView>(R.id.tv_name).text = item.name
             val img = holder.findViewById<ImageView>(R.id.iv_thumb)
 
+            // Clear pending Glide requests on recycled view
             Glide.with(this).clear(img)
 
             val iconUrl = item.icon ?: item.cover
@@ -367,7 +382,7 @@ class ContentActivity : FragmentActivity() {
             } else {
                 img.setImageResource(R.drawable.movie)
             }
-            
+
             val id = item.streamId?.toString() ?: item.seriesId?.toString() ?: ""
             if (prefs.isWatched(id)) {
                 holder.itemView.alpha = 0.5f
@@ -377,7 +392,8 @@ class ContentActivity : FragmentActivity() {
                 holder.itemView.alpha = 1.0f
             }
 
-            val isFav = prefs.isFavorite(type, id)
+            // Zero Disk I/O: O(1) in-memory check using preloaded favoritesSet
+            val isFav = favoritesSet.contains(id)
             val lastFav = holder.itemView.getTag(R.id.tv_name) as? Boolean
             if (lastFav != isFav) {
                 holder.itemView.setTag(R.id.tv_name, isFav)
@@ -407,94 +423,83 @@ class ContentActivity : FragmentActivity() {
                 overridePendingTransition(0, 0)
             }
         }, onFocus = { item ->
-            if (type == TYPE_LIVE) {
-                val llPreview = findViewById<View>(R.id.ll_epg_preview)
-                val tvTitle = findViewById<TextView>(R.id.tv_preview_title)
-                val tvCurrent = findViewById<TextView>(R.id.tv_preview_current)
-                val tvNext = findViewById<TextView>(R.id.tv_preview_next)
-                val tvNext2 = findViewById<TextView>(R.id.tv_preview_next2)
-                val tvNext3 = findViewById<TextView>(R.id.tv_preview_next3)
-                val tvNext4 = findViewById<TextView>(R.id.tv_preview_next4)
-                val tvNext5 = findViewById<TextView>(R.id.tv_preview_next5)
-                val ivLogo = findViewById<ImageView>(R.id.iv_preview_logo)
+            if (type != TYPE_LIVE) return@GenericAdapter
 
-                llPreview?.visibility = View.VISIBLE
-                tvTitle?.text = item.name
-                tvCurrent?.text = "IN ONDA: Caricamento..."
-                tvNext?.text = "A SEGUIRE: Caricamento..."
-                tvNext2?.text = "POI: Caricamento..."
-                tvNext3?.text = "PIÙ TARDI: Caricamento..."
-                tvNext4?.text = "Caricamento..."
-                tvNext5?.text = "Caricamento..."
+            val llPreview = findViewById<View>(R.id.ll_epg_preview)
+            val tvTitle = findViewById<TextView>(R.id.tv_preview_title)
+            val tvCurrent = findViewById<TextView>(R.id.tv_preview_current)
+            val tvNext = findViewById<TextView>(R.id.tv_preview_next)
+            val tvNext2 = findViewById<TextView>(R.id.tv_preview_next2)
+            val tvNext3 = findViewById<TextView>(R.id.tv_preview_next3)
+            val tvNext4 = findViewById<TextView>(R.id.tv_preview_next4)
+            val tvNext5 = findViewById<TextView>(R.id.tv_preview_next5)
+            val ivLogo = findViewById<ImageView>(R.id.iv_preview_logo)
 
-                val iconUrl = item.icon ?: item.cover
-                if (!iconUrl.isNullOrEmpty() && ivLogo != null) {
-                    Glide.with(this).load(iconUrl).format(DecodeFormat.PREFER_RGB_565).placeholder(R.drawable.movie).error(R.drawable.movie).into(ivLogo)
-                } else {
-                    ivLogo?.setImageResource(R.drawable.movie)
-                }
+            llPreview?.visibility = View.VISIBLE
+            tvTitle?.text = item.name
+            tvCurrent?.text = "IN ONDA: Caricamento..."
+            tvNext?.text = "A SEGUIRE: Caricamento..."
+            tvNext2?.text = "POI: Caricamento..."
+            tvNext3?.text = "PIÙ TARDI: Caricamento..."
+            tvNext4?.text = "Caricamento..."
+            tvNext5?.text = "Caricamento..."
 
-                epgRunnable?.let { epgHandler.removeCallbacks(it) }
-                currentEpgCall?.cancel()
+            val iconUrl = item.icon ?: item.cover
+            if (!iconUrl.isNullOrEmpty() && ivLogo != null) {
+                Glide.with(this).load(iconUrl).format(DecodeFormat.PREFER_RGB_565).placeholder(R.drawable.movie).error(R.drawable.movie).into(ivLogo)
+            } else {
+                ivLogo?.setImageResource(R.drawable.movie)
+            }
 
-                epgRunnable = Runnable {
-                    val streamId = item.streamId?.toString() ?: ""
-                    if (streamId.isNotEmpty()) {
-                        currentEpgCall = NetworkModule.api.getShortEpg(prefs.user, prefs.pass, streamId = streamId, limit = 12)
-                        currentEpgCall?.enqueue(object : Callback<EpgResponse> {
-                            override fun onResponse(call: Call<EpgResponse>, response: Response<EpgResponse>) {
-                                val listings = response.body()?.epgListings ?: emptyList()
-                                val currentTime = System.currentTimeMillis()
-                                val validListings = listings.filter { program ->
-                                    val endTime = parseEpgTime(program.end, program.stopTimestamp)
-                                    endTime == 0L || endTime > (currentTime - 600000L)
-                                }
+            epgRunnable?.let { epgHandler.removeCallbacks(it) }
+            currentEpgCall?.cancel()
 
-                                runOnUiThread {
-                                    if (validListings.isNotEmpty()) {
-                                        val current = validListings[0]
-                                        val next1 = validListings.getOrNull(1)
-                                        val next2 = validListings.getOrNull(2)
-                                        val next3 = validListings.getOrNull(3)
-                                        val next4 = validListings.getOrNull(4)
-                                        val next5 = validListings.getOrNull(5)
+            epgRunnable = Runnable {
+                val streamId = item.streamId?.toString() ?: ""
+                if (streamId.isNotEmpty()) {
+                    currentEpgCall = NetworkModule.api.getShortEpg(prefs.user, prefs.pass, streamId = streamId, limit = 12)
+                    currentEpgCall?.enqueue(object : Callback<EpgResponse> {
+                        override fun onResponse(call: Call<EpgResponse>, response: Response<EpgResponse>) {
+                            val listings = response.body()?.epgListings ?: emptyList()
+                            val currentTime = System.currentTimeMillis()
+                            val validListings = listings.filter { program ->
+                                val endTime = parseEpgTime(program.end, program.stopTimestamp)
+                                endTime == 0L || endTime > (currentTime - 600000L)
+                            }
 
-                                        val curStart = extractTime(current.start, current.startTimestamp)
-                                        val curEnd = extractTime(current.end, current.stopTimestamp)
-                                        tvCurrent?.text = "IN ONDA: ${current.decodedTitle} ($curStart - $curEnd)"
+                            runOnUiThread {
+                                if (validListings.isNotEmpty()) {
+                                    val current = validListings[0]
+                                    val next1 = validListings.getOrNull(1)
+                                    val next2 = validListings.getOrNull(2)
+                                    val next3 = validListings.getOrNull(3)
+                                    val next4 = validListings.getOrNull(4)
+                                    val next5 = validListings.getOrNull(5)
 
-                                        val nextViews = arrayOf(tvNext, tvNext2, tvNext3, tvNext4, tvNext5)
-                                        val nextItems = arrayOf(next1, next2, next3, next4, next5)
-                                        val labels = arrayOf("A SEGUIRE: ", "POI: ", "PIÙ TARDI: ", "", "")
+                                    val curStart = extractTime(current.start, current.startTimestamp)
+                                    val curEnd = extractTime(current.end, current.stopTimestamp)
+                                    tvCurrent?.text = "IN ONDA: ${current.decodedTitle} ($curStart - $curEnd)"
 
-                                        for (i in nextViews.indices) {
-                                            val view = nextViews[i]
-                                            val itemProg = nextItems[i]
-                                            if (view != null) {
-                                                if (itemProg != null) {
-                                                    val start = extractTime(itemProg.start, itemProg.startTimestamp)
-                                                    val end = extractTime(itemProg.end, itemProg.stopTimestamp)
-                                                    val prefix = labels.getOrElse(i) { "" }
-                                                    view.text = "$prefix${itemProg.decodedTitle} ($start - $end)"
-                                                    view.visibility = View.VISIBLE
-                                                } else {
-                                                    view.visibility = View.GONE
-                                                }
+                                    val nextViews = arrayOf(tvNext, tvNext2, tvNext3, tvNext4, tvNext5)
+                                    val nextItems = arrayOf(next1, next2, next3, next4, next5)
+                                    val labels = arrayOf("A SEGUIRE: ", "POI: ", "PIÙ TARDI: ", "", "")
+
+                                    for (i in nextViews.indices) {
+                                        val view = nextViews[i]
+                                        val itemProg = nextItems[i]
+                                        if (view != null) {
+                                            if (itemProg != null) {
+                                                val start = extractTime(itemProg.start, itemProg.startTimestamp)
+                                                val end = extractTime(itemProg.end, itemProg.stopTimestamp)
+                                                val prefix = labels.getOrElse(i) { "" }
+                                                view.text = "$prefix${itemProg.decodedTitle} ($start - $end)"
+                                                view.visibility = View.VISIBLE
+                                            } else {
+                                                view.visibility = View.GONE
                                             }
                                         }
-                                    } else {
-                                        tvCurrent?.text = "IN ONDA: Nessun dato EPG disponibile"
-                                        tvNext?.visibility = View.GONE
-                                        tvNext2?.visibility = View.GONE
-                                        tvNext3?.visibility = View.GONE
-                                        tvNext4?.visibility = View.GONE
-                                        tvNext5?.visibility = View.GONE
                                     }
-                                }
-                            }
-                            override fun onFailure(call: Call<EpgResponse>, t: Throwable) {
-                                if (call.isCanceled) return
-                                runOnUiThread {
+                                } else {
                                     tvCurrent?.text = "IN ONDA: Nessun dato EPG disponibile"
                                     tvNext?.visibility = View.GONE
                                     tvNext2?.visibility = View.GONE
@@ -503,20 +508,29 @@ class ContentActivity : FragmentActivity() {
                                     tvNext5?.visibility = View.GONE
                                 }
                             }
-                        })
-                    } else {
-                        tvCurrent?.text = "IN ONDA: Nessun dato EPG disponibile"
-                        tvNext?.visibility = View.GONE
-                        tvNext2?.visibility = View.GONE
-                        tvNext3?.visibility = View.GONE
-                        tvNext4?.visibility = View.GONE
-                        tvNext5?.visibility = View.GONE
-                    }
+                        }
+                        override fun onFailure(call: Call<EpgResponse>, t: Throwable) {
+                            if (call.isCanceled) return
+                            runOnUiThread {
+                                tvCurrent?.text = "IN ONDA: Nessun dato EPG disponibile"
+                                tvNext?.visibility = View.GONE
+                                tvNext2?.visibility = View.GONE
+                                tvNext3?.visibility = View.GONE
+                                tvNext4?.visibility = View.GONE
+                                tvNext5?.visibility = View.GONE
+                            }
+                        }
+                    })
+                } else {
+                    tvCurrent?.text = "IN ONDA: Nessun dato EPG disponibile"
+                    tvNext?.visibility = View.GONE
+                    tvNext2?.visibility = View.GONE
+                    tvNext3?.visibility = View.GONE
+                    tvNext4?.visibility = View.GONE
+                    tvNext5?.visibility = View.GONE
                 }
-                epgHandler.postDelayed(epgRunnable!!, 350)
-            } else {
-                findViewById<View>(R.id.ll_epg_preview)?.visibility = View.GONE
             }
+            epgHandler.postDelayed(epgRunnable!!, 300) // 300ms debounce
         }, onLongClick = { item ->
             val id = item.streamId?.toString() ?: item.seriesId?.toString() ?: ""
             
@@ -533,6 +547,7 @@ class ContentActivity : FragmentActivity() {
                     .show()
             } else {
                 prefs.toggleFavorite(type, id)
+                cacheUserPrefs()
                 if (currentCatId == CAT_FAVORITES) {
                     val currentList = streamAdapter.items.toMutableList()
                     val index = currentList.indexOf(item)
@@ -548,7 +563,6 @@ class ContentActivity : FragmentActivity() {
                 }
             }
         })
-        rvStreams.layoutManager = GridLayoutManager(this, if (type == TYPE_LIVE) 5 else 6)
         rvStreams.adapter = streamAdapter
     }
 
