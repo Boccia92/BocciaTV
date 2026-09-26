@@ -359,8 +359,8 @@ class ContentActivity : FragmentActivity() {
 
         // Pre-calculate target dimensions once outside the bind lambda
         val density = resources.displayMetrics.density
-        val targetW = (140 * density).toInt()
-        val targetH = (210 * density).toInt()
+        val targetW = (145 * density).toInt()
+        val targetH = (220 * density).toInt()
 
         streamAdapter = GenericAdapter(R.layout.item_grid, { holder: GenericAdapter.ViewHolder, item: StreamItem ->
             holder.findViewById<TextView>(R.id.tv_name).text = item.name
