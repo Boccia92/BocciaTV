@@ -4,16 +4,17 @@
     android:layout_width="match_parent"
     android:layout_height="220dp"
     android:layout_margin="4dp"
-    android:background="@drawable/card_background"
+    android:clickable="true"
     android:focusable="true"
-    android:focusableInTouchMode="true">
+    android:focusableInTouchMode="true"
+    android:foreground="@drawable/card_background">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="6dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="@android:color/transparent">
+        app:cardElevation="0dp">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -37,7 +38,6 @@
                 android:padding="6dp"
                 android:textColor="@android:color/white"
                 android:textSize="12sp" />
-
         </FrameLayout>
     </androidx.cardview.widget.CardView>
 </FrameLayout>
