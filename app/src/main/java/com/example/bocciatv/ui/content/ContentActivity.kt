@@ -129,6 +129,7 @@ class ContentActivity : FragmentActivity() {
         filterJob?.cancel()
         epgHandler.removeCallbacksAndMessages(null)
         currentEpgCall?.cancel()
+        Glide.with(this).resumeRequests()
     }
 
     private fun setupSearch() {
@@ -343,19 +344,21 @@ class ContentActivity : FragmentActivity() {
             }
         })
 
+        val density = resources.displayMetrics.density
+        val targetW = (105 * density).toInt()
+        val targetH = (95 * density).toInt()
+
         streamAdapter = GenericAdapter(R.layout.item_grid, { holder: GenericAdapter.ViewHolder, item: StreamItem ->
             holder.findViewById<TextView>(R.id.tv_name).text = item.name
             val img = holder.findViewById<ImageView>(R.id.iv_thumb)
-            
+
+            Glide.with(this).clear(img)
+
             val iconUrl = item.icon ?: item.cover
             if (!iconUrl.isNullOrEmpty()) {
-                val density = resources.displayMetrics.density
-                val targetW = (105 * density).toInt()
-                val targetH = (95 * density).toInt()
-
                 Glide.with(this)
                     .load(iconUrl)
-                    .format(DecodeFormat.PREFER_RGB_565) // Dimezza la memoria bitmap
+                    .format(DecodeFormat.PREFER_RGB_565)
                     .override(targetW, targetH)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.movie)
