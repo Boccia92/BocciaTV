@@ -346,10 +346,17 @@ class ContentActivity : FragmentActivity() {
 
         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
         rvStreams.setHasFixedSize(true)
-        rvStreams.setItemViewCacheSize(25) // <-- Inseriscila qui
+        rvStreams.setItemViewCacheSize(10)
         rvStreams.layoutManager = GridLayoutManager(this, 5)
         rvStreams.itemAnimator = null
-        rvStreams.recycledViewPool.setMaxRecycledViews(0, 25)
+        rvStreams.recycledViewPool.setMaxRecycledViews(0, 15)
+
+        rvStreams.addRecyclerListener { holder ->
+            val ivThumb = holder.itemView.findViewById<ImageView?>(R.id.iv_thumb)
+            if (ivThumb != null) {
+                Glide.with(holder.itemView.context).clear(ivThumb)
+            }
+        }
 
         rvStreams.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -376,8 +383,15 @@ class ContentActivity : FragmentActivity() {
 
             val iconUrl = item.icon ?: item.cover
             if (!iconUrl.isNullOrEmpty()) {
+                val thumbRequest = Glide.with(this)
+                    .load(iconUrl)
+                    .format(DecodeFormat.PREFER_RGB_565)
+                    .override((targetW * 0.2f).toInt(), (targetH * 0.2f).toInt())
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+
                 Glide.with(this)
                     .load(iconUrl)
+                    .thumbnail(thumbRequest)
                     .dontAnimate()
                     .format(DecodeFormat.PREFER_RGB_565)
                     .override(targetW, targetH)
