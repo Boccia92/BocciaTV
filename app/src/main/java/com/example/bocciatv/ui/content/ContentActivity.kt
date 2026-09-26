@@ -79,6 +79,8 @@ class ContentActivity : FragmentActivity() {
 
     // Zero Disk I/O in bind: preloaded in-memory sets/maps
     private var favoritesSet = setOf<String>()
+    private var watchedSet = setOf<String>()
+    private var positionsMap = mapOf<String, Long>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val locale = Locale.ITALY
@@ -139,6 +141,8 @@ class ContentActivity : FragmentActivity() {
 
     private fun cacheUserPrefs() {
         favoritesSet = prefs.getFavorites(type)
+        watchedSet = prefs.getWatchedSet()
+        positionsMap = prefs.getAllPositions()
     }
 
     private fun setupSearch() {
@@ -344,7 +348,7 @@ class ContentActivity : FragmentActivity() {
         rvStreams.setHasFixedSize(true)
         rvStreams.layoutManager = GridLayoutManager(this, 5) // Fixed 5 columns for all types
         rvStreams.itemAnimator = null // Disable default animations
-        rvStreams.recycledViewPool.setMaxRecycledViews(0, 25) // Pre-allocate recycled view pool
+        rvStreams.setItemViewCacheSize(25) // Optimized cache size
 
         rvStreams.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -373,9 +377,10 @@ class ContentActivity : FragmentActivity() {
             if (!iconUrl.isNullOrEmpty()) {
                 Glide.with(this)
                     .load(iconUrl)
+                    .dontAnimate()
                     .format(DecodeFormat.PREFER_RGB_565)
                     .override(targetW, targetH)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .placeholder(R.drawable.movie)
                     .error(R.drawable.movie)
                     .into(img)
@@ -384,9 +389,12 @@ class ContentActivity : FragmentActivity() {
             }
 
             val id = item.streamId?.toString() ?: item.seriesId?.toString() ?: ""
-            if (prefs.isWatched(id)) {
+            val isWatched = watchedSet.contains(id)
+            val pos = positionsMap[id] ?: 0L
+
+            if (isWatched) {
                 holder.itemView.alpha = 0.5f
-            } else if (prefs.getPosition(id) > 0) {
+            } else if (pos > 0) {
                 holder.itemView.alpha = 0.8f
             } else {
                 holder.itemView.alpha = 1.0f
@@ -446,7 +454,7 @@ class ContentActivity : FragmentActivity() {
 
             val iconUrl = item.icon ?: item.cover
             if (!iconUrl.isNullOrEmpty() && ivLogo != null) {
-                Glide.with(this).load(iconUrl).format(DecodeFormat.PREFER_RGB_565).placeholder(R.drawable.movie).error(R.drawable.movie).into(ivLogo)
+                Glide.with(this).load(iconUrl).dontAnimate().format(DecodeFormat.PREFER_RGB_565).placeholder(R.drawable.movie).error(R.drawable.movie).into(ivLogo)
             } else {
                 ivLogo?.setImageResource(R.drawable.movie)
             }
@@ -562,7 +570,7 @@ class ContentActivity : FragmentActivity() {
                     }
                 }
             }
-        })
+        }, enableZoom = false) // Crucial: disable scale animation on focus for TV
         rvStreams.adapter = streamAdapter
     }
 

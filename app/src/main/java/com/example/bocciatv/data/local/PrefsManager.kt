@@ -125,6 +125,28 @@ class PrefsManager(context: Context) {
         return getReminders().any { it.eventId == eventId }
     }
 
+    fun getWatchedSet(): Set<String> {
+        val allEntries = prefs.all
+        val watched = mutableSetOf<String>()
+        for ((key, value) in allEntries) {
+            if (key.startsWith("watched_") && value == true) {
+                watched.add(key.removePrefix("watched_"))
+            }
+        }
+        return watched
+    }
+
+    fun getAllPositions(): Map<String, Long> {
+        val allEntries = prefs.all
+        val positions = mutableMapOf<String, Long>()
+        for ((key, value) in allEntries) {
+            if (key.startsWith("pos_") && value is Long) {
+                positions[key.removePrefix("pos_")] = value
+            }
+        }
+        return positions
+    }
+
     fun clearCache() {
         prefs.edit().remove("category_cache").apply()
     }
