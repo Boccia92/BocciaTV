@@ -17,6 +17,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,13 +33,13 @@ import com.example.bocciatv.data.model.StreamItem
 import com.example.bocciatv.data.network.NetworkModule
 import com.example.bocciatv.ui.adapter.GenericAdapter
 import com.example.bocciatv.ui.player.PlayerActivity
-import com.example.bocciatv.utils.DisplayUtils
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.*
 
 @UnstableApi
 class ContentActivity : FragmentActivity() {
@@ -50,6 +51,13 @@ class ContentActivity : FragmentActivity() {
         private const val CAT_FAVORITES = "PREFERITI_ID"
         private const val CAT_RECENT = "RECENT_ID"
         var shouldRefresh = false
+
+        private val streamsCache = mutableMapOf<String, List<StreamItem>>()
+        private val categoryMapCache = mutableMapOf<String, MutableMap<String, List<StreamItem>>>()
+
+        // Reusable thread-safe date formatters to prevent GC thrashing
+        private val sdfDateTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ITALY)
+        private val sdfTimeOnly = SimpleDateFormat("HH:mm", Locale.ITALY)
     }
 
     private lateinit var type: String
@@ -58,12 +66,16 @@ class ContentActivity : FragmentActivity() {
     private lateinit var streamAdapter: GenericAdapter<StreamItem>
     
     private var masterList = emptyList<StreamItem>()
+    private var categoryStreamsMap = mutableMapOf<String, List<StreamItem>>()
     private var currentCatId: String? = CAT_FAVORITES
     private var currentSearch: String = ""
     private var isAlphabeticalSort = false
 
     private val epgHandler = Handler(Looper.getMainLooper())
     private var epgRunnable: Runnable? = null
+    private var currentEpgCall: Call<EpgResponse>? = null
+
+    private var filterJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val locale = Locale.ITALY
@@ -94,22 +106,29 @@ class ContentActivity : FragmentActivity() {
         }
 
         loadCategories()
-        loadAllContent()
     }
 
     override fun onResume() {
         super.onResume()
         if (shouldRefresh) {
             Log.d("SYNC_DEBUG", "Database locale azzerato")
+            streamsCache.clear()
+            categoryMapCache.clear()
             masterList = emptyList()
             catAdapter.update(emptyList())
             streamAdapter.update(emptyList())
             loadCategories()
-            loadAllContent()
             shouldRefresh = false
         } else {
-            applyFilters()
+            currentCatId?.let { loadStreamsForCategory(it) }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        filterJob?.cancel()
+        epgHandler.removeCallbacksAndMessages(null)
+        currentEpgCall?.cancel()
     }
 
     private fun setupSearch() {
@@ -124,91 +143,155 @@ class ContentActivity : FragmentActivity() {
         })
     }
 
-    private val filterHandler = Handler(Looper.getMainLooper())
-    private var filterRunnable: Runnable? = null
-
     private fun applyFilters(focusStreams: Boolean = false) {
         val search = currentSearch
         val catId = currentCatId
-        val currentType = type
-
-        val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
-        rvStreams.animate().alpha(0.4f).setDuration(120).start()
-        val pbLoading = findViewById<ProgressBar>(R.id.pb_loading)
-        pbLoading?.visibility = View.VISIBLE
-
-        filterRunnable?.let { filterHandler.removeCallbacks(it) }
         
-        filterRunnable = Runnable {
-            // Esegui il calcolo pesante fuori dal main thread in maniera sicura
-            Thread {
-                val filtered = if (search.isNotEmpty()) {
-                    val searchResult = masterList.filter { it.name?.contains(search, ignoreCase = true) == true }.take(500)
-                    searchResult
-                } else if (catId == CAT_FAVORITES) {
-                    val favIds = prefs.getFavorites(currentType)
-                    masterList.filter { 
-                        val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
-                        favIds.contains(id)
-                    }
-                } else if (catId == CAT_RECENT) {
-                    val recentIds = prefs.getRecentList()
-                    recentIds.mapNotNull { id ->
-                        masterList.find { (it.streamId?.toString() ?: it.seriesId?.toString() ?: "") == id }
-                    }
-                } else if (catId != null) {
-                    masterList.filter { it.categoryId == catId }
-                } else {
-                    masterList
-                }
+        filterJob?.cancel()
+        filterJob = lifecycleScope.launch(Dispatchers.Default) {
+            val pbLoading = findViewById<ProgressBar>(R.id.pb_loading)
+            withContext(Dispatchers.Main) {
+                pbLoading?.visibility = View.VISIBLE
+            }
 
-                val sortedAndFinal = if (isAlphabeticalSort) {
-                    filtered.sortedBy { it.name?.lowercase() ?: "" }.toList()
-                } else {
-                    filtered.toList()
+            val filtered = if (search.isNotEmpty()) {
+                masterList.filter { it.name?.contains(search, ignoreCase = true) == true }.take(500)
+            } else if (catId == CAT_FAVORITES) {
+                val favIds = prefs.getFavorites(type)
+                masterList.filter { 
+                    val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
+                    favIds.contains(id)
                 }
+            } else if (catId == CAT_RECENT) {
+                val recentIds = prefs.getRecentList()
+                val masterMap = masterList.associateBy { it.streamId?.toString() ?: it.seriesId?.toString() ?: "" }
+                recentIds.mapNotNull { id -> masterMap[id] }
+            } else if (catId != null) {
+                categoryStreamsMap[catId] ?: emptyList()
+            } else {
+                masterList
+            }
 
+            if (!isActive) return@launch
+
+            val sortedAndFinal = if (isAlphabeticalSort) {
+                filtered.sortedBy { it.name?.lowercase() ?: "" }
+            } else {
+                filtered
+            }
+
+            val limited = if (sortedAndFinal.size > 500) sortedAndFinal.take(500) else sortedAndFinal
+
+            withContext(Dispatchers.Main) {
+                pbLoading?.visibility = View.GONE
+                streamAdapter.update(limited)
+                if (focusStreams) {
+                    val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
+                    rvStreams?.post { rvStreams.requestFocus() }
+                }
+            }
+        }
+    }
+
+    private fun loadStreamsForCategory(catId: String, focusStreams: Boolean = false) {
+        currentCatId = catId
+        val pbLoading = findViewById<ProgressBar>(R.id.pb_loading)
+
+        if (catId == CAT_FAVORITES) {
+            val favIds = prefs.getFavorites(type)
+            val filtered = masterList.filter { 
+                val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
+                favIds.contains(id)
+            }
+            displayStreams(filtered, focusStreams)
+            return
+        }
+
+        if (catId == CAT_RECENT) {
+            val recentIds = prefs.getRecentList()
+            val masterMap = masterList.associateBy { it.streamId?.toString() ?: it.seriesId?.toString() ?: "" }
+            val filtered = recentIds.mapNotNull { id -> masterMap[id] }
+            displayStreams(filtered, focusStreams)
+            return
+        }
+
+        if (categoryStreamsMap.containsKey(catId) && !categoryStreamsMap[catId].isNullOrEmpty()) {
+            displayStreams(categoryStreamsMap[catId]!!, focusStreams)
+            return
+        }
+
+        pbLoading?.visibility = View.VISIBLE
+        val streamAction = when(type) {
+            TYPE_LIVE -> "get_live_streams"
+            TYPE_VOD -> "get_vod_streams"
+            else -> "get_series"
+        }
+
+        NetworkModule.api.getStreams(prefs.user, prefs.pass, streamAction, catId).enqueue(object : Callback<List<StreamItem>> {
+            override fun onResponse(call: Call<List<StreamItem>>, response: Response<List<StreamItem>>) {
+                val body = response.body() ?: emptyList()
+                categoryStreamsMap[catId] = body
+                categoryMapCache[type] = categoryStreamsMap
                 runOnUiThread {
                     pbLoading?.visibility = View.GONE
-                    rvStreams.animate().alpha(1.0f).setDuration(120).start()
-                    streamAdapter.update(sortedAndFinal)
-                    if (focusStreams) {
-                        rvStreams.post { rvStreams.requestFocus() }
-                    }
+                    displayStreams(body, focusStreams)
                 }
-            }.start()
+            }
+            override fun onFailure(call: Call<List<StreamItem>>, t: Throwable) {
+                runOnUiThread {
+                    pbLoading?.visibility = View.GONE
+                    Toast.makeText(this@ContentActivity, "Errore caricamento categoria", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+    }
+
+    private fun displayStreams(streams: List<StreamItem>, focusStreams: Boolean) {
+        val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
+        lifecycleScope.launch(Dispatchers.Default) {
+            val sortedAndFinal = if (isAlphabeticalSort) {
+                streams.sortedBy { it.name?.lowercase() ?: "" }
+            } else {
+                streams
+            }
+
+            val limited = if (sortedAndFinal.size > 500) sortedAndFinal.take(500) else sortedAndFinal
+
+            withContext(Dispatchers.Main) {
+                streamAdapter.update(limited)
+                if (focusStreams) {
+                    rvStreams?.post { rvStreams.requestFocus() }
+                }
+            }
         }
-        
-        // Anti-spam debouncing (ritardo ottimizzato per massima reattività)
-        filterHandler.postDelayed(filterRunnable!!, 100)
     }
 
     private fun setupLists() {
         val rvCats = findViewById<RecyclerView>(R.id.rv_cats)
         catAdapter = GenericAdapter(
             layoutId = R.layout.item_simple,
-            bind = { holder: GenericAdapter.ViewHolder, item: Category ->
-                val tv = holder.findViewById<TextView>(R.id.tv_name)
+            bind = { v, item ->
+                val tv = v.findViewById<TextView>(R.id.tv_name)
                 tv.text = item.name
 
                 val isSelected = item.id == currentCatId
-                val isFocused = holder.itemView.hasFocus()
+                val isFocused = v.hasFocus()
 
                 when {
                     isFocused && isSelected -> {
-                        holder.itemView.setBackgroundResource(R.drawable.category_focused_active_bg)
+                        v.setBackgroundResource(R.drawable.category_focused_active_bg)
                         tv.setTextColor(Color.BLACK)
                     }
                     isFocused -> {
-                        holder.itemView.setBackgroundResource(R.drawable.category_focused_bg)
+                        v.setBackgroundResource(R.drawable.category_focused_bg)
                         tv.setTextColor(Color.BLACK)
                     }
                     isSelected -> {
-                        holder.itemView.setBackgroundResource(R.drawable.category_active_bg)
+                        v.setBackgroundResource(R.drawable.category_active_bg)
                         tv.setTextColor(Color.WHITE)
                     }
                     else -> {
-                        holder.itemView.setBackgroundResource(android.R.color.transparent)
+                        v.setBackgroundResource(android.R.color.transparent)
                         tv.setTextColor(Color.WHITE)
                     }
                 }
@@ -216,7 +299,7 @@ class ContentActivity : FragmentActivity() {
             onClick = { item ->
                 currentCatId = item.id
                 findViewById<EditText>(R.id.et_search).text.clear()
-                applyFilters(focusStreams = true)
+                loadStreamsForCategory(item.id ?: "", focusStreams = true)
                 catAdapter.notifyDataSetChanged()
             },
             enableZoom = false,
@@ -248,7 +331,7 @@ class ContentActivity : FragmentActivity() {
 
         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
         rvStreams.setHasFixedSize(true)
-        rvStreams.setItemViewCacheSize(25)
+        rvStreams.setItemViewCacheSize(6) // Conservativo per evitare GC overhead su Android TV / Fire Stick
 
         streamAdapter = GenericAdapter(R.layout.item_grid, { holder: GenericAdapter.ViewHolder, item: StreamItem ->
             holder.findViewById<TextView>(R.id.tv_name).text = item.name
@@ -262,6 +345,7 @@ class ContentActivity : FragmentActivity() {
 
                 Glide.with(this)
                     .load(iconUrl)
+                    .format(DecodeFormat.PREFER_RGB_565) // Dimezza la memoria bitmap
                     .override(targetW, targetH)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.movie)
@@ -332,16 +416,19 @@ class ContentActivity : FragmentActivity() {
 
                 val iconUrl = item.icon ?: item.cover
                 if (!iconUrl.isNullOrEmpty() && ivLogo != null) {
-                    Glide.with(this).load(iconUrl).placeholder(R.drawable.movie).error(R.drawable.movie).into(ivLogo)
+                    Glide.with(this).load(iconUrl).format(DecodeFormat.PREFER_RGB_565).placeholder(R.drawable.movie).error(R.drawable.movie).into(ivLogo)
                 } else {
                     ivLogo?.setImageResource(R.drawable.movie)
                 }
 
                 epgRunnable?.let { epgHandler.removeCallbacks(it) }
+                currentEpgCall?.cancel()
+
                 epgRunnable = Runnable {
                     val streamId = item.streamId?.toString() ?: ""
                     if (streamId.isNotEmpty()) {
-                        NetworkModule.api.getShortEpg(prefs.user, prefs.pass, streamId = streamId, limit = 12).enqueue(object : Callback<EpgResponse> {
+                        currentEpgCall = NetworkModule.api.getShortEpg(prefs.user, prefs.pass, streamId = streamId, limit = 12)
+                        currentEpgCall?.enqueue(object : Callback<EpgResponse> {
                             override fun onResponse(call: Call<EpgResponse>, response: Response<EpgResponse>) {
                                 val listings = response.body()?.epgListings ?: emptyList()
                                 val currentTime = System.currentTimeMillis()
@@ -393,6 +480,7 @@ class ContentActivity : FragmentActivity() {
                                 }
                             }
                             override fun onFailure(call: Call<EpgResponse>, t: Throwable) {
+                                if (call.isCanceled) return
                                 runOnUiThread {
                                     tvCurrent?.text = "IN ONDA: Nessun dato EPG disponibile"
                                     tvNext?.visibility = View.GONE
@@ -425,12 +513,7 @@ class ContentActivity : FragmentActivity() {
                     .setMessage("Vuoi rimuovere questo elemento da 'Continua a Guardare'?")
                     .setPositiveButton("Rimuovi") { _, _ ->
                         prefs.removeFromRecent(id)
-                        val currentList = streamAdapter.items.toMutableList()
-                        val index = currentList.indexOf(item)
-                        if (index != -1) {
-                            currentList.removeAt(index)
-                            streamAdapter.update(currentList)
-                        }
+                        applyFilters()
                         Toast.makeText(this, "Rimosso", Toast.LENGTH_SHORT).show()
                     }
                     .setNegativeButton("Annulla", null)
@@ -457,7 +540,7 @@ class ContentActivity : FragmentActivity() {
     }
 
     private fun buildStreamUrl(item: StreamItem): String {
-        val baseUrl = "http://latteax.securitysc.shop"
+        val baseUrl = prefs.serverUrl.ifEmpty { "http://latteax.securitysc.shop" }
         val user = prefs.user
         val pass = prefs.pass
         val id = item.streamId?.toString() ?: ""
@@ -475,20 +558,18 @@ class ContentActivity : FragmentActivity() {
         NetworkModule.api.getCategories(prefs.user, prefs.pass, type).enqueue(object : Callback<List<Category>> {
             override fun onResponse(call: Call<List<Category>>, response: Response<List<Category>>) {
                 val cats = response.body() ?: emptyList()
-                val catNames = cats.mapNotNull { it.name }.joinToString(", ")
-                Log.d("SYNC_DEBUG", "Nuove categorie ricevute: $catNames")
-
                 val finalCats = mutableListOf<Category>()
                 finalCats.add(Category(CAT_FAVORITES, "⭐ PREFERITI"))
                 finalCats.add(Category(CAT_RECENT, "🕒 CONTINUA A GUARDARE"))
                 finalCats.addAll(cats)
+
                 runOnUiThread {
                     catAdapter.update(finalCats)
-                    if (type == TYPE_LIVE && currentCatId == CAT_FAVORITES && prefs.getFavorites(type).isEmpty() && cats.isNotEmpty()) {
-                        currentCatId = cats[0].id
-                        applyFilters()
+                    if (finalCats.isNotEmpty()) {
+                        loadStreamsForCategory(finalCats[0].id ?: "")
                     }
                 }
+                loadAllContentSilent()
             }
             override fun onFailure(call: Call<List<Category>>, t: Throwable) {
                 runOnUiThread {
@@ -498,30 +579,28 @@ class ContentActivity : FragmentActivity() {
         })
     }
 
-    private fun loadAllContent() {
+    private fun loadAllContentSilent() {
+        if (streamsCache.containsKey(type) && !streamsCache[type].isNullOrEmpty()) {
+            masterList = streamsCache[type]!!
+            return
+        }
         val streamAction = when(type) {
             TYPE_LIVE -> "get_live_streams"
             TYPE_VOD -> "get_vod_streams"
             else -> "get_series"
         }
-        
         NetworkModule.api.getStreams(prefs.user, prefs.pass, streamAction, null).enqueue(object : Callback<List<StreamItem>> {
             override fun onResponse(call: Call<List<StreamItem>>, response: Response<List<StreamItem>>) {
                 val body = response.body()
                 if (response.isSuccessful && body != null) {
                     masterList = body
-                    runOnUiThread { applyFilters() }
-                } else {
-                    runOnUiThread {
-                        Toast.makeText(this@ContentActivity, "Server IPTV non disponibile", Toast.LENGTH_SHORT).show()
+                    streamsCache[type] = masterList
+                    CoroutineScope(Dispatchers.Default).launch {
+                        categoryMapCache[type] = masterList.groupBy { it.categoryId ?: "" }.toMutableMap()
                     }
                 }
             }
-            override fun onFailure(call: Call<List<StreamItem>>, t: Throwable) {
-                runOnUiThread {
-                    Toast.makeText(this@ContentActivity, "Errore caricamento lista contenuti", Toast.LENGTH_SHORT).show()
-                }
-            }
+            override fun onFailure(call: Call<List<StreamItem>>, t: Throwable) {}
         })
     }
 
@@ -531,9 +610,10 @@ class ContentActivity : FragmentActivity() {
         }
         if (!rawTime.isNullOrEmpty()) {
             try {
-                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ITALY)
-                val date = sdf.parse(rawTime)
-                if (date != null) return date.time
+                synchronized(sdfDateTime) {
+                    val date = sdfDateTime.parse(rawTime)
+                    if (date != null) return date.time
+                }
             } catch (_: Exception) {}
         }
         return 0L
@@ -542,17 +622,22 @@ class ContentActivity : FragmentActivity() {
     private fun extractTime(rawTime: String?, rawTimestamp: Long?): String {
         if (rawTimestamp != null && rawTimestamp > 0) {
             val ms = if (rawTimestamp > 10000000000L) rawTimestamp else rawTimestamp * 1000
-            return SimpleDateFormat("HH:mm", Locale.ITALY).format(Date(ms))
+            synchronized(sdfTimeOnly) {
+                return sdfTimeOnly.format(Date(ms))
+            }
         }
         if (!rawTime.isNullOrEmpty()) {
             if (rawTime.length >= 16) {
                 return rawTime.substring(11, 16)
             }
             try {
-                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ITALY)
-                val date = sdf.parse(rawTime)
-                if (date != null) {
-                    return SimpleDateFormat("HH:mm", Locale.ITALY).format(date)
+                synchronized(sdfDateTime) {
+                    val date = sdfDateTime.parse(rawTime)
+                    if (date != null) {
+                        synchronized(sdfTimeOnly) {
+                            return sdfTimeOnly.format(date)
+                        }
+                    }
                 }
             } catch (_: Exception) {}
             return rawTime

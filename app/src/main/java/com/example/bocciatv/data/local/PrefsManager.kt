@@ -17,6 +17,10 @@ class PrefsManager(context: Context) {
         get() = prefs.getString("pass", "") ?: ""
         set(v) = prefs.edit().putString("pass", v).apply()
 
+    var serverUrl: String
+        get() = prefs.getString("server_url", "http://latteax.securitysc.shop") ?: "http://latteax.securitysc.shop"
+        set(v) = prefs.edit().putString("server_url", v).apply()
+
     var expDate: String
         get() = prefs.getString("exp_date", "") ?: ""
         set(v) = prefs.edit().putString("exp_date", v).apply()
