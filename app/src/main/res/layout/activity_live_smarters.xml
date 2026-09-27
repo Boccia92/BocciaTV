@@ -149,7 +149,10 @@
             android:orientation="vertical"
             android:visibility="gone"
             android:background="#111111"
-            android:focusable="false">
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:clickable="false"
+            android:descendantFocusability="blocksDescendants">
 
             <!-- Player Area (16:9) -->
             <FrameLayout
@@ -159,7 +162,8 @@
                 android:layout_weight="1.2"
                 android:background="#000000"
                 android:focusable="false"
-                android:focusableInTouchMode="false">
+                android:focusableInTouchMode="false"
+                android:clickable="false">
 
                 <androidx.media3.ui.PlayerView
                     android:id="@+id/player_view_smarters"
@@ -167,7 +171,10 @@
                     android:layout_height="match_parent"
                     app:use_controller="true"
                     app:show_timeout="3000"
-                    app:resize_mode="fit" />
+                    app:resize_mode="fit"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:clickable="false" />
 
             </FrameLayout>
 
@@ -178,7 +185,9 @@
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:focusable="false">
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:clickable="false">
 
                 <TextView
                     android:id="@+id/tv_playing_channel"
@@ -195,6 +204,7 @@
                     android:layout_height="match_parent"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
+                    android:clickable="false"
                     android:descendantFocusability="blocksDescendants" />
 
             </LinearLayout>
