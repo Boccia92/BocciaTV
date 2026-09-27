@@ -44,8 +44,6 @@ import androidx.media3.common.util.UnstableApi
 import android.graphics.Color
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import com.example.bocciatv.data.model.ReminderItem
-import com.example.bocciatv.utils.ReminderScheduler
 import java.util.Calendar
 
 @UnstableApi
@@ -285,37 +283,65 @@ class LiveSmartersActivity : FragmentActivity() {
         rvZappingChannels.layoutManager = LinearLayoutManager(this)
         rvZappingChannels.adapter = zappingAdapter
 
-        // EPG (Sotto al mini player)
+        // D-pad Left / Right for quick category switching without losing mini player playback
+        rvZappingChannels.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                    switchToNextCategory()
+                    return@setOnKeyListener true
+                } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                    switchToPrevCategory()
+                    return@setOnKeyListener true
+                }
+            }
+            false
+        }
+
+        // EPG (Sotto al mini player) - Locked focus (non-focusable visual info panel)
         val rvEpg = findViewById<RecyclerView>(R.id.rv_epg)
+        rvEpg.isFocusable = false
+        rvEpg.isFocusableInTouchMode = false
+        rvEpg.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        
         epgAdapter = GenericAdapter(R.layout.item_epg_smarters, { v, prog ->
-            v.isFocusable = true
+            v.isFocusable = false
+            v.isClickable = false
             val dateTimeStr = formatEpgDateTime(prog.start, prog.startTimestamp, prog.end, prog.stopTimestamp)
             v.findViewById<TextView>(R.id.tv_epg_time).text = dateTimeStr
             v.findViewById<TextView>(R.id.tv_epg_title).text = prog.decodedTitle
             
             val tvReminder = v.findViewById<TextView>(R.id.tv_epg_reminder)
             tvReminder?.visibility = View.GONE
-
-            v.setOnKeyListener { _, keyCode, event ->
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    val position = rvEpg.getChildAdapterPosition(v)
-                    val totalCount = epgAdapter.items.size
-
-                    if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && position == totalCount - 1) {
-                        return@setOnKeyListener true
-                    }
-                    if (keyCode == KeyEvent.KEYCODE_DPAD_UP && position == 0) {
-                        return@setOnKeyListener true
-                    }
-                }
-                false
-            }
         }, { prog ->
-            Toast.makeText(this, prog.decodedTitle, Toast.LENGTH_SHORT).show()
+            // no-op
         }, enableZoom = false)
         rvEpg.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        rvEpg.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         rvEpg.adapter = epgAdapter
+    }
+
+    private fun switchToNextCategory() {
+        val cats = catAdapter.items
+        if (cats.isEmpty()) return
+        var index = cats.indexOfFirst { it.id == currentCatId }
+        index = (index + 1) % cats.size
+        selectCategory(cats[index])
+    }
+
+    private fun switchToPrevCategory() {
+        val cats = catAdapter.items
+        if (cats.isEmpty()) return
+        var index = cats.indexOfFirst { it.id == currentCatId }
+        index = if (index - 1 < 0) cats.size - 1 else index - 1
+        selectCategory(cats[index])
+    }
+
+    private fun selectCategory(cat: Category) {
+        currentCatId = cat.id
+        currentCatName = cat.name
+        tvZappingCategory.text = currentCatName ?: "Categoria"
+        val channels = getCurrentCategoryChannels()
+        zappingAdapter.update(channels)
+        // Mini player continues playing uninterrupted
     }
 
     private fun loadCategoriesAndChannels() {

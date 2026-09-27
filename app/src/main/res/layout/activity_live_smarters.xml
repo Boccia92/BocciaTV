@@ -102,8 +102,8 @@
                 android:layout_height="match_parent"
                 android:padding="8dp"
                 android:clipToPadding="false"
-                android:focusable="false"
-                android:nextFocusRight="@+id/rv_epg"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:descendantFocusability="afterDescendants" />
         </LinearLayout>
     </FrameLayout>
@@ -177,7 +177,8 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:focusable="false">
 
                 <TextView
                     android:id="@+id/tv_playing_channel"
@@ -192,9 +193,9 @@
                     android:id="@+id/rv_epg"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:focusable="true"
-                    android:descendantFocusability="afterDescendants"
-                    android:nextFocusLeft="@+id/rv_zapping_channels" />
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:descendantFocusability="blocksDescendants" />
 
             </LinearLayout>
         </LinearLayout>
