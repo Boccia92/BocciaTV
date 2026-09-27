@@ -293,22 +293,8 @@ class LiveSmartersActivity : FragmentActivity() {
             v.findViewById<TextView>(R.id.tv_epg_time).text = dateTimeStr
             v.findViewById<TextView>(R.id.tv_epg_title).text = prog.decodedTitle
             
-            val tvReminder = v.findViewById<TextView>(R.id.tv_epg_reminder) ?: return@GenericAdapter
-            val startTime = parseEpgTime(prog.start, prog.startTimestamp)
-            
-            if (startTime > System.currentTimeMillis() && !prog.decodedTitle.contains("Nessun dato") && !prog.decodedTitle.contains("Caricamento")) {
-                tvReminder.visibility = View.VISIBLE
-                val eventId = prog.id ?: "${activeZappingChannelId}_${prog.decodedTitle}_${prog.start}"
-                if (prefs.isReminderSet(eventId)) {
-                    tvReminder.text = "🔔 Attivo"
-                    tvReminder.setTextColor(Color.GREEN)
-                } else {
-                    tvReminder.text = "🔔"
-                    tvReminder.setTextColor(Color.WHITE)
-                }
-            } else {
-                tvReminder.visibility = View.GONE
-            }
+            val tvReminder = v.findViewById<TextView>(R.id.tv_epg_reminder)
+            tvReminder?.visibility = View.GONE
 
             v.setOnKeyListener { _, keyCode, event ->
                 if (event.action == KeyEvent.ACTION_DOWN) {
@@ -325,33 +311,7 @@ class LiveSmartersActivity : FragmentActivity() {
                 false
             }
         }, { prog ->
-            val startTime = parseEpgTime(prog.start, prog.startTimestamp)
-            if (startTime > System.currentTimeMillis() && !prog.decodedTitle.contains("Nessun dato") && !prog.decodedTitle.contains("Caricamento")) {
-                val eventId = prog.id ?: "${activeZappingChannelId}_${prog.decodedTitle}_${prog.start}"
-                val channelName = tvPlayingChannel.text.toString()
-                val streamUrl = "http://latteax.securitysc.shop/live/${prefs.user}/${prefs.pass}/$activeZappingChannelId.ts"
-                
-                if (prefs.isReminderSet(eventId)) {
-                    ReminderScheduler.cancelReminder(this, eventId)
-                    Toast.makeText(this, "Promemoria rimosso: ${prog.decodedTitle}", Toast.LENGTH_SHORT).show()
-                } else {
-                    val reminderItem = ReminderItem(
-                        eventId = eventId,
-                        programTitle = prog.decodedTitle,
-                        channelId = activeZappingChannelId ?: "",
-                        channelName = channelName,
-                        streamUrl = streamUrl,
-                        startTimeMillis = startTime
-                    )
-                    ReminderScheduler.scheduleReminder(this, reminderItem)
-                    Toast.makeText(this, "Promemoria impostato: ${prog.decodedTitle}", Toast.LENGTH_SHORT).show()
-                }
-                epgAdapter.notifyDataSetChanged()
-            } else if (prog.decodedTitle.contains("Nessun dato") || prog.decodedTitle.contains("Caricamento")) {
-                // Ignore clicks on placeholder text
-            } else {
-                Toast.makeText(this, "Il programma è già iniziato o terminato", Toast.LENGTH_SHORT).show()
-            }
+            Toast.makeText(this, prog.decodedTitle, Toast.LENGTH_SHORT).show()
         }, enableZoom = false)
         rvEpg.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         rvEpg.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
