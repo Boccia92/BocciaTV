@@ -130,6 +130,22 @@ class LiveSmartersActivity : FragmentActivity() {
         })
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (currentState == SmartersState.PLAYER && event != null) {
+            when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                    switchToNextCategory()
+                    return true
+                }
+                KeyEvent.KEYCODE_DPAD_LEFT -> {
+                    switchToPrevCategory()
+                    return true
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     override fun onResume() {
         super.onResume()
         if (currentState == SmartersState.PLAYER && currentPlayingItem != null) {
