@@ -1,6 +1,6 @@
 {
-  "versionCode": 432,
-  "versionName": "19.1",
+  "versionCode": 433,
+  "versionName": "19.2",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Navigazione D-pad rapida categorie Live TV senza interruzione mini player PiP.\n- Rimozione definitiva del pulsante Guida TV e promemoria.\n- Versione 19.1."
+  "releaseNotes": "- Ottimizzazione controllo aggiornamenti e dialog.\n- Versione 19.2."
 }
