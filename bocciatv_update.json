@@ -1,6 +1,6 @@
 {
-  "versionCode": 431,
-  "versionName": "19.0",
+  "versionCode": 432,
+  "versionName": "19.1",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ottimizzazioni estreme di performance della RecyclerView (DiffUtil, cache View nel ViewHolder).\n- Correzione aspect ratio e zoom video con TextureView.\n- Versione 19.0."
+  "releaseNotes": "- Navigazione D-pad rapida categorie Live TV senza interruzione mini player PiP.\n- Rimozione definitiva del pulsante Guida TV e promemoria.\n- Versione 19.1."
 }
