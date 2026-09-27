@@ -141,7 +141,7 @@
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
                     android:paddingHorizontal="10dp"
-                    android:nextFocusRight="@+id/btn_reminder"/>
+                    android:nextFocusRight="@id/exo_rew"/>
 
                 <Button
                     android:id="@+id/btn_reminder"
@@ -149,14 +149,13 @@
                     android:layout_height="36dp"
                     android:layout_marginStart="8dp"
                     android:background="@drawable/player_button_focus_selector"
-                    android:focusable="true"
-                    android:clickable="true"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:visibility="gone"
                     android:text="🔔 Ricorda"
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
-                    android:paddingHorizontal="10dp"
-                    android:nextFocusLeft="@+id/btn_epg_guide"
-                    android:nextFocusRight="@id/exo_rew"/>
+                    android:paddingHorizontal="10dp"/>
 
                 <ImageButton
                     android:id="@id/exo_rew"
@@ -169,7 +168,7 @@
                     android:src="@android:drawable/ic_media_rew"
                     app:tint="@android:color/white"
                     android:contentDescription="Indietro 10s"
-                    android:nextFocusLeft="@+id/btn_reminder"
+                    android:nextFocusLeft="@+id/btn_epg_guide"
                     android:nextFocusRight="@+id/btn_play_pause"/>
 
                 <ImageButton

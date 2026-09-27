@@ -58,7 +58,8 @@
         android:text="🔔 Ricorda"
         android:textColor="@android:color/white"
         android:textSize="12sp"
-        android:focusable="true"
-        android:clickable="true" />
+        android:visibility="gone"
+        android:focusable="false"
+        android:clickable="false" />
 
 </LinearLayout>
