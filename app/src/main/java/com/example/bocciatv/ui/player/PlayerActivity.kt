@@ -70,6 +70,9 @@ class PlayerActivity : FragmentActivity() {
     private var nextProgramStartTime: Long = 0L
     private var nextProgramEventId: String? = null
 
+    private var retryCount = 0
+    private val retryHandler = Handler(Looper.getMainLooper())
+
     private val handler = Handler(Looper.getMainLooper())
     private val progressUpdater = object : Runnable {
         override fun run() {
@@ -79,25 +82,22 @@ class PlayerActivity : FragmentActivity() {
     }
 
     private fun saveCurrentPosition() {
-        player?.let {
-            if (it.isPlaying) {
-                val pos = it.currentPosition
-                val duration = it.duration
-                currentMediaId?.let { id ->
-                    if (id != "unknown") {
-                        prefs.savePosition(id, pos)
-                        if (duration > 0 && (duration - pos) < 120000) {
-                            prefs.setWatched(id)
-                        } else if (pos > 10000) {
-                            prefs.setWatched(id, false)
-                        }
-                    }
-                }
+        val p = player ?: return
+        val pos = p.currentPosition
+        val duration = p.duration
+        val id = currentMediaId ?: return
 
-                if (it.hasNextMediaItem() && duration > 0 && (duration - pos) < 10000) {
-                    it.seekToNext()
-                }
+        if (id != "unknown" && pos > 0) {
+            prefs.savePosition(id, pos)
+            if (duration > 0 && (duration - pos) < 120000) {
+                prefs.setWatched(id)
+            } else if (pos > 10000) {
+                prefs.setWatched(id, false)
             }
+        }
+
+        if (p.hasNextMediaItem() && duration > 0 && (duration - pos) < 10000) {
+            p.seekToNext()
         }
     }
 
@@ -218,6 +218,7 @@ class PlayerActivity : FragmentActivity() {
             it.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     if (state == Player.STATE_READY) {
+                        retryCount = 0
                         configurePlayerControlsForMedia()
                         val sessionId = it.audioSessionId
                         if (sessionId != C.AUDIO_SESSION_ID_UNSET) {
@@ -258,6 +259,17 @@ class PlayerActivity : FragmentActivity() {
 
                 override fun onPlayerError(error: PlaybackException) {
                     Log.e("BocciaTV", "Playback Error: ${error.message}", error)
+                    retryCount++
+                    if (retryCount <= 3) {
+                        Toast.makeText(this@PlayerActivity, "Errore riproduzione, tentativo $retryCount/3...", Toast.LENGTH_SHORT).show()
+                        retryHandler.postDelayed({
+                            player?.prepare()
+                            player?.playWhenReady = true
+                        }, 2000)
+                    } else {
+                        Toast.makeText(this@PlayerActivity, "Impossibile riprodurre questo contenuto", Toast.LENGTH_LONG).show()
+                        finish()
+                    }
                 }
 
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -648,6 +660,8 @@ class PlayerActivity : FragmentActivity() {
     }
 
     override fun finish() {
+        saveCurrentPosition()
+        retryHandler.removeCallbacksAndMessages(null)
         playerView.hideController()
         playerView.player = null
         try {
@@ -663,8 +677,9 @@ class PlayerActivity : FragmentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        handler.removeCallbacksAndMessages(null)
         saveCurrentPosition()
+        retryHandler.removeCallbacksAndMessages(null)
+        handler.removeCallbacksAndMessages(null)
         dynamicsProcessing?.release()
         dynamicsProcessing = null
         try {

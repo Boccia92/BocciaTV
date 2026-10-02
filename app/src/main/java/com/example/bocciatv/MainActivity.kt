@@ -77,6 +77,9 @@ class MainActivity : FragmentActivity() {
         // Automatic initial check/refresh on app startup
         refreshAccountInfo()
 
+        // Check for last crash log
+        checkLastCrash()
+
         // Check for app updates on startup
         UpdateManager.checkForUpdates(this, isSilent = true)
 
@@ -173,6 +176,33 @@ class MainActivity : FragmentActivity() {
             }
         } catch (e: Exception) {
             rawExp.toString()
+        }
+    }
+
+    private fun checkLastCrash() {
+        val crashFile = java.io.File(filesDir, "last_crash.txt")
+        if (crashFile.exists()) {
+            val crashText = try { crashFile.readText() } catch (e: Exception) { "" }
+            if (crashText.isNotEmpty()) {
+                val textView = android.widget.TextView(this).apply {
+                    text = crashText
+                    setPadding(32, 24, 32, 24)
+                    setTextIsSelectable(true)
+                }
+                val scrollView = android.widget.ScrollView(this).apply {
+                    addView(textView)
+                }
+                AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                    .setTitle("L'app si è chiusa per un errore")
+                    .setView(scrollView)
+                    .setPositiveButton("OK") { _, _ ->
+                        crashFile.delete()
+                    }
+                    .setOnDismissListener {
+                        crashFile.delete()
+                    }
+                    .show()
+            }
         }
     }
 
