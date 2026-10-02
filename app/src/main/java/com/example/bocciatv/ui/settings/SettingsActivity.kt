@@ -6,11 +6,14 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.bocciatv.R
 import com.example.bocciatv.data.local.PrefsManager
+import com.example.bocciatv.data.repository.AppRepository
 import com.example.bocciatv.ui.login.LoginActivity
 import com.example.bocciatv.ui.speedtest.SpeedTestActivity
 import com.example.bocciatv.utils.UpdateManager
+import kotlinx.coroutines.launch
 import java.util.*
 
 class SettingsActivity : FragmentActivity() {
@@ -30,6 +33,22 @@ class SettingsActivity : FragmentActivity() {
 
         findViewById<TextView>(R.id.tv_user_info).text = "Username: ${prefs.user}"
         findViewById<TextView>(R.id.tv_exp_info).text = "Scadenza: ${prefs.expDate}"
+
+        findViewById<Button>(R.id.btn_sync_contents).setOnClickListener {
+            @Suppress("DEPRECATION")
+            val progressDialog = android.app.ProgressDialog(this, android.R.style.Theme_DeviceDefault_Dialog_Alert).apply {
+                setTitle("Aggiornamento Contenuti")
+                setMessage("Sincronizzazione contenuti nel database in corso...")
+                setCancelable(false)
+                show()
+            }
+            lifecycleScope.launch {
+                val repository = AppRepository(this@SettingsActivity)
+                repository.syncContentIfNeeded(force = true)
+                if (progressDialog.isShowing) progressDialog.dismiss()
+                Toast.makeText(this@SettingsActivity, "Sincronizzazione database completata!", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         findViewById<Button>(R.id.btn_speed_test).setOnClickListener {
             startActivity(Intent(this, SpeedTestActivity::class.java))

@@ -57,11 +57,20 @@
         </LinearLayout>
 
         <Button
-            android:id="@+id/btn_speed_test"
+            android:id="@+id/btn_sync_contents"
             style="@style/MenuButtonStyle"
             android:layout_width="320dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:text="Aggiorna Contenuti Database"
+            android:textColor="#2196F3"/>
+
+        <Button
+            android:id="@+id/btn_speed_test"
+            style="@style/MenuButtonStyle"
+            android:layout_width="320dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:text="Speed Test Connessione"
             android:textColor="#FFC107"/>
 

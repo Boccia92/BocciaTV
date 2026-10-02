@@ -74,6 +74,11 @@ class GenericAdapter<T> : RecyclerView.Adapter<GenericAdapter.ViewHolder> {
         return item ?: 0
     }
 
+    fun replaceAll(newItems: List<T>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
+
     fun update(newItems: List<T>) {
         val diffCallback = object : DiffUtil.Callback() {
             override fun getOldListSize() = items.size

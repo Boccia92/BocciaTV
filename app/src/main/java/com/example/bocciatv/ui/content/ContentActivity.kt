@@ -31,6 +31,7 @@ import com.example.bocciatv.data.model.Category
 import com.example.bocciatv.data.model.EpgResponse
 import com.example.bocciatv.data.model.StreamItem
 import com.example.bocciatv.data.network.NetworkModule
+import com.example.bocciatv.data.repository.AppRepository
 import com.example.bocciatv.ui.adapter.GenericAdapter
 import com.example.bocciatv.ui.player.PlayerActivity
 import retrofit2.Call
@@ -52,7 +53,6 @@ class ContentActivity : FragmentActivity() {
         private const val CAT_RECENT = "RECENT_ID"
         var shouldRefresh = false
 
-        private val streamsCache = mutableMapOf<String, List<StreamItem>>()
         private val categoryMapCache = mutableMapOf<String, MutableMap<String, List<StreamItem>>>()
 
         // Reusable thread-safe date formatters to prevent GC thrashing
@@ -62,6 +62,7 @@ class ContentActivity : FragmentActivity() {
 
     private lateinit var type: String
     private lateinit var prefs: PrefsManager
+    private lateinit var repository: AppRepository
     private lateinit var catAdapter: GenericAdapter<Category>
     private lateinit var streamAdapter: GenericAdapter<StreamItem>
     
@@ -92,7 +93,11 @@ class ContentActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_content)
         prefs = PrefsManager(this)
+        repository = AppRepository(this)
         type = intent.getStringExtra(EXTRA_TYPE) ?: TYPE_LIVE
+
+        // Initialize categoryStreamsMap from in-memory cache map
+        categoryStreamsMap = categoryMapCache.getOrPut(type) { mutableMapOf() }
 
         findViewById<TextView>(R.id.tv_type_title).text = when(type) {
             TYPE_LIVE -> "LIVE TV"
@@ -100,7 +105,6 @@ class ContentActivity : FragmentActivity() {
             else -> "SERIE TV"
         }
 
-        cacheUserPrefs()
         setupLists()
         setupSearch()
         
@@ -119,7 +123,6 @@ class ContentActivity : FragmentActivity() {
         cacheUserPrefs()
         if (shouldRefresh) {
             Log.d("SYNC_DEBUG", "Database locale azzerato")
-            streamsCache.clear()
             categoryMapCache.clear()
             masterList = emptyList()
             catAdapter.update(emptyList())
@@ -136,7 +139,6 @@ class ContentActivity : FragmentActivity() {
         filterJob?.cancel()
         epgHandler.removeCallbacksAndMessages(null)
         currentEpgCall?.cancel()
-        Glide.with(this).resumeRequests()
     }
 
     private fun cacheUserPrefs() {
@@ -168,21 +170,26 @@ class ContentActivity : FragmentActivity() {
                 pbLoading?.visibility = View.VISIBLE
             }
 
-            cacheUserPrefs()
-
             val filtered = if (search.isNotEmpty()) {
-                masterList.filter { it.name?.contains(search, ignoreCase = true) == true }.take(500)
+                // Room DB Search
+                repository.searchStreams(type, search).map { it.toStreamItem() }.take(500)
             } else if (catId == CAT_FAVORITES) {
+                if (masterList.isEmpty()) {
+                    masterList = repository.getAllStreamsForType(type).map { it.toStreamItem() }
+                }
                 masterList.filter { 
                     val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
                     favoritesSet.contains(id)
                 }
             } else if (catId == CAT_RECENT) {
                 val recentIds = prefs.getRecentList()
+                if (masterList.isEmpty()) {
+                    masterList = repository.getAllStreamsForType(type).map { it.toStreamItem() }
+                }
                 val masterMap = masterList.associateBy { it.streamId?.toString() ?: it.seriesId?.toString() ?: "" }
                 recentIds.mapNotNull { id -> masterMap[id] }
             } else if (catId != null) {
-                categoryStreamsMap[catId] ?: emptyList()
+                categoryStreamsMap[catId] ?: repository.getStreamsByCategory(type, catId).map { it.toStreamItem() }
             } else {
                 masterList
             }
@@ -195,11 +202,9 @@ class ContentActivity : FragmentActivity() {
                 filtered
             }
 
-            val limited = if (sortedAndFinal.size > 500) sortedAndFinal.take(500) else sortedAndFinal
-
             withContext(Dispatchers.Main) {
                 pbLoading?.visibility = View.GONE
-                streamAdapter.update(limited)
+                streamAdapter.replaceAll(sortedAndFinal)
                 if (focusStreams) {
                     val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
                     rvStreams?.post { rvStreams.requestFocus() }
@@ -211,22 +216,31 @@ class ContentActivity : FragmentActivity() {
     private fun loadStreamsForCategory(catId: String, focusStreams: Boolean = false) {
         currentCatId = catId
         val pbLoading = findViewById<ProgressBar>(R.id.pb_loading)
-        cacheUserPrefs()
 
         if (catId == CAT_FAVORITES) {
-            val filtered = masterList.filter { 
-                val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
-                favoritesSet.contains(id)
+            lifecycleScope.launch {
+                if (masterList.isEmpty()) {
+                    masterList = repository.getAllStreamsForType(type).map { it.toStreamItem() }
+                }
+                val filtered = masterList.filter { 
+                    val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
+                    favoritesSet.contains(id)
+                }
+                displayStreams(filtered, focusStreams)
             }
-            displayStreams(filtered, focusStreams)
             return
         }
 
         if (catId == CAT_RECENT) {
-            val recentIds = prefs.getRecentList()
-            val masterMap = masterList.associateBy { it.streamId?.toString() ?: it.seriesId?.toString() ?: "" }
-            val filtered = recentIds.mapNotNull { id -> masterMap[id] }
-            displayStreams(filtered, focusStreams)
+            lifecycleScope.launch {
+                val recentIds = prefs.getRecentList()
+                if (masterList.isEmpty()) {
+                    masterList = repository.getAllStreamsForType(type).map { it.toStreamItem() }
+                }
+                val masterMap = masterList.associateBy { it.streamId?.toString() ?: it.seriesId?.toString() ?: "" }
+                val filtered = recentIds.mapNotNull { id -> masterMap[id] }
+                displayStreams(filtered, focusStreams)
+            }
             return
         }
 
@@ -236,29 +250,14 @@ class ContentActivity : FragmentActivity() {
         }
 
         pbLoading?.visibility = View.VISIBLE
-        val streamAction = when(type) {
-            TYPE_LIVE -> "get_live_streams"
-            TYPE_VOD -> "get_vod_streams"
-            else -> "get_series"
-        }
 
-        NetworkModule.api.getStreams(prefs.user, prefs.pass, streamAction, catId).enqueue(object : Callback<List<StreamItem>> {
-            override fun onResponse(call: Call<List<StreamItem>>, response: Response<List<StreamItem>>) {
-                val body = response.body() ?: emptyList()
-                categoryStreamsMap[catId] = body
-                categoryMapCache[type] = categoryStreamsMap
-                runOnUiThread {
-                    pbLoading?.visibility = View.GONE
-                    displayStreams(body, focusStreams)
-                }
-            }
-            override fun onFailure(call: Call<List<StreamItem>>, t: Throwable) {
-                runOnUiThread {
-                    pbLoading?.visibility = View.GONE
-                    Toast.makeText(this@ContentActivity, "Errore caricamento categoria", Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
+        lifecycleScope.launch {
+            val entities = repository.getStreamsByCategory(type, catId)
+            val items = entities.map { it.toStreamItem() }
+            categoryStreamsMap[catId] = items
+            pbLoading?.visibility = View.GONE
+            displayStreams(items, focusStreams)
+        }
     }
 
     private fun displayStreams(streams: List<StreamItem>, focusStreams: Boolean) {
@@ -270,10 +269,8 @@ class ContentActivity : FragmentActivity() {
                 streams
             }
 
-            val limited = if (sortedAndFinal.size > 500) sortedAndFinal.take(500) else sortedAndFinal
-
             withContext(Dispatchers.Main) {
-                streamAdapter.update(limited)
+                streamAdapter.replaceAll(sortedAndFinal)
                 if (focusStreams) {
                     rvStreams?.post { rvStreams.requestFocus() }
                 }
@@ -346,28 +343,10 @@ class ContentActivity : FragmentActivity() {
 
         val rvStreams = findViewById<RecyclerView>(R.id.rv_streams)
         rvStreams.setHasFixedSize(true)
-        rvStreams.setItemViewCacheSize(10)
-        rvStreams.layoutManager = GridLayoutManager(this, 5)
-        rvStreams.itemAnimator = null
-        rvStreams.recycledViewPool.setMaxRecycledViews(0, 15)
-
-        rvStreams.addRecyclerListener { holder ->
-            val ivThumb = holder.itemView.findViewById<ImageView?>(R.id.iv_thumb)
-            if (ivThumb != null) {
-                Glide.with(holder.itemView.context).clear(ivThumb)
-            }
-        }
-
-        rvStreams.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                if (newState == RecyclerView.SCROLL_STATE_SETTLING || newState == RecyclerView.SCROLL_STATE_DRAGGING) {
-                    Glide.with(this@ContentActivity).pauseRequests()
-                } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    Glide.with(this@ContentActivity).resumeRequests()
-                }
-            }
-        })
+        rvStreams.setItemViewCacheSize(30)
+        rvStreams.layoutManager = GridLayoutManager(this, 5) // Fixed 5 columns for all types
+        rvStreams.itemAnimator = null // Disable default animations
+        rvStreams.recycledViewPool.setMaxRecycledViews(0, 40) // Pre-allocate recycled view pool
 
         // Pre-calculate target dimensions once outside the bind lambda
         val density = resources.displayMetrics.density
@@ -383,19 +362,12 @@ class ContentActivity : FragmentActivity() {
 
             val iconUrl = item.icon ?: item.cover
             if (!iconUrl.isNullOrEmpty()) {
-                val thumbRequest = Glide.with(this)
-                    .load(iconUrl)
-                    .format(DecodeFormat.PREFER_RGB_565)
-                    .override((targetW * 0.2f).toInt(), (targetH * 0.2f).toInt())
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-
                 Glide.with(this)
                     .load(iconUrl)
-                    .thumbnail(thumbRequest)
                     .dontAnimate()
                     .format(DecodeFormat.PREFER_RGB_565)
                     .override(targetW, targetH)
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.movie)
                     .error(R.drawable.movie)
                     .into(img)
@@ -585,7 +557,7 @@ class ContentActivity : FragmentActivity() {
                     }
                 }
             }
-        }, enableZoom = false) // Crucial: disable scale animation on focus for TV
+        }, enableZoom = false)
         rvStreams.adapter = streamAdapter
     }
 
@@ -605,53 +577,39 @@ class ContentActivity : FragmentActivity() {
     }
 
     private fun loadCategories() {
-        NetworkModule.api.getCategories(prefs.user, prefs.pass, type).enqueue(object : Callback<List<Category>> {
-            override fun onResponse(call: Call<List<Category>>, response: Response<List<Category>>) {
-                val cats = response.body() ?: emptyList()
-                val finalCats = mutableListOf<Category>()
-                finalCats.add(Category(CAT_FAVORITES, "⭐ PREFERITI"))
-                finalCats.add(Category(CAT_RECENT, "🕒 CONTINUA A GUARDARE"))
-                finalCats.addAll(cats)
+        lifecycleScope.launch {
+            val dbCats = repository.getCategories(type)
+            val cats = dbCats.map { it.toCategory() }
+            val finalCats = mutableListOf<Category>()
+            finalCats.add(Category(CAT_FAVORITES, "⭐ PREFERITI"))
+            finalCats.add(Category(CAT_RECENT, "🕒 CONTINUA A GUARDARE"))
+            finalCats.addAll(cats)
 
-                runOnUiThread {
-                    catAdapter.update(finalCats)
-                    if (finalCats.isNotEmpty()) {
-                        loadStreamsForCategory(finalCats[0].id ?: "")
-                    }
-                }
-                loadAllContentSilent()
+            catAdapter.update(finalCats)
+            if (finalCats.isNotEmpty()) {
+                loadStreamsForCategory(finalCats[0].id)
             }
-            override fun onFailure(call: Call<List<Category>>, t: Throwable) {
-                runOnUiThread {
-                    Toast.makeText(this@ContentActivity, "Errore connessione server IPTV", Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
+
+            // Background sync from Room DB or network
+            loadAllContentSilent()
+        }
     }
 
     private fun loadAllContentSilent() {
-        if (streamsCache.containsKey(type) && !streamsCache[type].isNullOrEmpty()) {
-            masterList = streamsCache[type]!!
-            return
-        }
-        val streamAction = when(type) {
-            TYPE_LIVE -> "get_live_streams"
-            TYPE_VOD -> "get_vod_streams"
-            else -> "get_series"
-        }
-        NetworkModule.api.getStreams(prefs.user, prefs.pass, streamAction, null).enqueue(object : Callback<List<StreamItem>> {
-            override fun onResponse(call: Call<List<StreamItem>>, response: Response<List<StreamItem>>) {
-                val body = response.body()
-                if (response.isSuccessful && body != null) {
-                    masterList = body
-                    streamsCache[type] = masterList
-                    CoroutineScope(Dispatchers.Default).launch {
-                        categoryMapCache[type] = masterList.groupBy { it.categoryId ?: "" }.toMutableMap()
+        lifecycleScope.launch {
+            repository.syncContentIfNeeded()
+            val entities = repository.getAllStreamsForType(type)
+            masterList = entities.map { it.toStreamItem() }
+
+            withContext(Dispatchers.Default) {
+                val grouped = masterList.groupBy { it.categoryId ?: "" }.toMutableMap()
+                withContext(Dispatchers.Main) {
+                    grouped.forEach { (catId, items) ->
+                        categoryStreamsMap.putIfAbsent(catId, items)
                     }
                 }
             }
-            override fun onFailure(call: Call<List<StreamItem>>, t: Throwable) {}
-        })
+        }
     }
 
     private fun parseEpgTime(rawTime: String?, rawTimestamp: Long?): Long {

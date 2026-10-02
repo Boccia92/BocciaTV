@@ -13,16 +13,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import com.example.bocciatv.data.local.PrefsManager
-import com.example.bocciatv.data.model.Category
 import com.example.bocciatv.data.model.UserAuth
 import com.example.bocciatv.data.network.NetworkModule
+import com.example.bocciatv.data.repository.AppRepository
 import com.example.bocciatv.ui.content.ContentActivity
 import com.example.bocciatv.ui.content.LiveSmartersActivity
 import com.example.bocciatv.ui.settings.SettingsActivity
-import com.example.bocciatv.utils.DisplayUtils
 import com.example.bocciatv.utils.UpdateManager
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -69,15 +70,12 @@ class MainActivity : FragmentActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        lifecycleScope.launch {
+            AppRepository(this@MainActivity).syncContentIfNeeded()
+        }
+
         // Automatic initial check/refresh on app startup
-        Toast.makeText(this, "Controllo e aggiornamento lista in corso...", Toast.LENGTH_SHORT).show()
-        refreshAccountInfo(onResult = { success ->
-            runOnUiThread {
-                if (success) {
-                    Toast.makeText(this@MainActivity, "Lista aggiornata!", Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
+        refreshAccountInfo()
 
         // Check for app updates on startup
         UpdateManager.checkForUpdates(this, isSilent = true)
@@ -106,29 +104,32 @@ class MainActivity : FragmentActivity() {
     private fun showRefreshDialogAndExecute() {
         @Suppress("DEPRECATION")
         val progressDialog = ProgressDialog(this, android.R.style.Theme_DeviceDefault_Dialog_Alert).apply {
-            setTitle("Aggiornamento Lista")
-            setMessage("Aggiornamento della lista in corso...")
+            setTitle("Aggiornamento Contenuti")
+            setMessage("Sincronizzazione contenuti nel database in corso...")
             setCancelable(false)
             show()
         }
 
-        Log.d("SYNC_DEBUG", "Database locale azzerato")
         ContentActivity.shouldRefresh = true
         prefs.clearCache()
 
-        refreshAccountInfo(onResult = { success ->
-            runOnUiThread {
-                if (progressDialog.isShowing) {
-                    progressDialog.dismiss()
+        lifecycleScope.launch {
+            val repository = AppRepository(this@MainActivity)
+            repository.syncContentIfNeeded(force = true)
+            refreshAccountInfo(onResult = { success ->
+                runOnUiThread {
+                    if (progressDialog.isShowing) {
+                        progressDialog.dismiss()
+                    }
+                    val msg = if (success) "Sincronizzazione completata nel database!" else "Errore durante l'aggiornamento dei contenuti."
+                    AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                        .setTitle("Aggiornamento Contenuti")
+                        .setMessage(msg)
+                        .setPositiveButton("OK", null)
+                        .show()
                 }
-                val msg = if (success) "Lista aggiornata! Rientra nelle categorie per visualizzare le modifiche." else "Errore durante l'aggiornamento della lista."
-                AlertDialog.Builder(this@MainActivity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                    .setTitle("Aggiornamento Lista")
-                    .setMessage(msg)
-                    .setPositiveButton("OK", null)
-                    .show()
-            }
-        })
+            })
+        }
     }
 
     private fun updateExpiryUI() {
@@ -163,7 +164,6 @@ class MainActivity : FragmentActivity() {
         return try {
             val timestamp = rawExp.toString().toLongOrNull()
             if (timestamp != null && timestamp > 0) {
-                // If it's a timestamp (seconds or ms)
                 val date = if (timestamp > 1000000000000L) Date(timestamp) else Date(timestamp * 1000)
                 SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(date)
             } else if (rawExp.toString().contains("/")) {
