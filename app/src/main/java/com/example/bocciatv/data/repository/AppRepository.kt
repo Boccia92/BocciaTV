@@ -13,6 +13,12 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
+fun Any?.toIdString(): String? = when (this) {
+    is Number -> this.toLong().toString()
+    null -> null
+    else -> this.toString()
+}
+
 class AppRepository(context: Context) {
 
     private val db = AppDatabase.getInstance(context)
@@ -23,32 +29,29 @@ class AppRepository(context: Context) {
         private val syncMutex = Mutex()
     }
 
-    suspend fun syncContentIfNeeded(force: Boolean = false) = withContext(Dispatchers.IO) {
+    suspend fun syncContentIfNeeded(force: Boolean = false): Boolean = withContext(Dispatchers.IO) {
         val lastSync = prefs.lastSyncTime
         val now = System.currentTimeMillis()
         val twelveHoursMs = 12 * 3600 * 1000L
 
         if (force || (now - lastSync) > twelveHoursMs || lastSync == 0L) {
-            if (syncMutex.isLocked) {
-                Log.d("AppRepository", "Sincronizzazione già in corso, salto...")
-                return@withContext
-            }
-
-            syncMutex.withLock {
+            return@withContext syncMutex.withLock {
                 try {
                     Log.d("AppRepository", "Avvio sincronizzazione completa nel DB Room...")
                     syncType("get_live_categories", "get_live_streams")
                     syncType("get_vod_categories", "get_vod_streams")
                     syncType("get_series_categories", "get_series")
                     
-                    // Update lastSyncTime ONLY if all 3 completed successfully
                     prefs.lastSyncTime = System.currentTimeMillis()
                     Log.d("AppRepository", "Sincronizzazione Room completata con successo!")
+                    true
                 } catch (e: Exception) {
                     Log.e("AppRepository", "Errore durante sincronizzazione Room: ${e.message}")
+                    false
                 }
             }
         }
+        return@withContext true
     }
 
     private suspend fun syncType(catAction: String, streamAction: String) = withContext(Dispatchers.IO) {
@@ -65,7 +68,7 @@ class AppRepository(context: Context) {
         val categories = catResponse.body()!!
         val catEntities = categories.map {
             CategoryEntity(
-                dbId = "${catAction}_${it.id}",
+                dbId = "${catAction}_${it.id ?: ""}",
                 id = it.id ?: "",
                 name = it.name,
                 type = catAction
@@ -78,11 +81,13 @@ class AppRepository(context: Context) {
         }
         val streams = streamResponse.body()!!
         val streamEntities = streams.map {
-            val streamIdStr = it.streamId?.toString() ?: it.seriesId?.toString() ?: it.name ?: ""
+            val sId = it.streamId.toIdString()
+            val serId = it.seriesId.toIdString()
+            val streamIdStr = sId ?: serId ?: it.name ?: ""
             StreamEntity(
                 id = "${catAction}_$streamIdStr",
-                streamId = it.streamId?.toString(),
-                seriesId = it.seriesId?.toString(),
+                streamId = sId,
+                seriesId = serId,
                 categoryId = it.categoryId,
                 name = it.name,
                 icon = it.icon,
@@ -110,7 +115,7 @@ class AppRepository(context: Context) {
     suspend fun getStreamsByIds(type: String, ids: List<String>) = withContext(Dispatchers.IO) {
         if (ids.isEmpty()) return@withContext emptyList<StreamEntity>()
         val result = mutableListOf<StreamEntity>()
-        for (chunk in ids.chunked(900)) {
+        for (chunk in ids.chunked(450)) {
             result.addAll(dao.getStreamsByIds(type, chunk))
         }
         result

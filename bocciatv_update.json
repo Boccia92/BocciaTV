@@ -1,6 +1,6 @@
 {
-  "versionCode": 433,
-  "versionName": "19.2",
+  "versionCode": 434,
+  "versionName": "19.3",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Ottimizzazione controllo aggiornamenti e dialog.\n- Versione 19.2."
+  "releaseNotes": "- Contenuti salvati in locale: categorie e film si aprono istantaneamente.\n- Locandine più veloci.\n- Nuovo pulsante Aggiorna contenuti in Impostazioni.\n- Correzioni varie."
 }
