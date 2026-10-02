@@ -12,10 +12,12 @@ import com.example.bocciatv.data.local.PrefsManager
 import com.example.bocciatv.data.repository.AppRepository
 import com.example.bocciatv.ui.login.LoginActivity
 import com.example.bocciatv.ui.speedtest.SpeedTestActivity
+import androidx.media3.common.util.UnstableApi
 import com.example.bocciatv.utils.UpdateManager
 import kotlinx.coroutines.launch
 import java.util.*
 
+@UnstableApi
 class SettingsActivity : FragmentActivity() {
 
     private lateinit var prefs: PrefsManager
@@ -44,9 +46,15 @@ class SettingsActivity : FragmentActivity() {
             }
             lifecycleScope.launch {
                 val repository = AppRepository(this@SettingsActivity)
-                repository.syncContentIfNeeded(force = true)
+                val ok = repository.syncContentIfNeeded(force = true)
                 if (progressDialog.isShowing) progressDialog.dismiss()
-                Toast.makeText(this@SettingsActivity, "Sincronizzazione database completata!", Toast.LENGTH_SHORT).show()
+                if (ok) {
+                    com.example.bocciatv.ui.content.ContentActivity.shouldRefresh = true
+                    com.example.bocciatv.ui.content.ContentActivity.clearCategoryMapCache()
+                    Toast.makeText(this@SettingsActivity, "Sincronizzazione database completata!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@SettingsActivity, "Errore di sincronizzazione, controlla la connessione", Toast.LENGTH_LONG).show()
+                }
             }
         }
 

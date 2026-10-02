@@ -587,8 +587,31 @@ class ContentActivity : FragmentActivity() {
 
     private fun loadAllContentSilent() {
         lifecycleScope.launch {
-            repository.syncContentIfNeeded()
-            val dbCats = repository.getCategories(type)
+            val pbLoading = findViewById<ProgressBar>(R.id.pb_loading)
+            var dbCats = repository.getCategories(type)
+            val wasEmpty = dbCats.isEmpty()
+
+            if (wasEmpty) {
+                withContext(Dispatchers.Main) {
+                    pbLoading?.visibility = View.VISIBLE
+                }
+            }
+
+            val syncSuccess = repository.syncContentIfNeeded()
+            dbCats = repository.getCategories(type)
+
+            if (wasEmpty) {
+                withContext(Dispatchers.Main) {
+                    pbLoading?.visibility = View.GONE
+                }
+            }
+
+            if (!syncSuccess && dbCats.isEmpty()) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ContentActivity, "Impossibile scaricare i contenuti, controlla la connessione", Toast.LENGTH_LONG).show()
+                }
+            }
+
             if (dbCats.isNotEmpty()) {
                 val cats = dbCats.map { it.toCategory() }
                 val finalCats = mutableListOf<Category>()

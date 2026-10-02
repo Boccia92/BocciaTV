@@ -22,8 +22,8 @@ data class StreamEntity(
 ) {
     fun toStreamItem(): StreamItem {
         return StreamItem(
-            streamId = streamId?.toIntOrNull(),
-            seriesId = seriesId?.toIntOrNull(),
+            streamId = streamId,
+            seriesId = seriesId,
             categoryId = categoryId,
             name = name,
             icon = icon,
