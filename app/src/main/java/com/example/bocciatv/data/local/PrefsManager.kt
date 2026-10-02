@@ -29,6 +29,10 @@ class PrefsManager(context: Context) {
         get() = prefs.getInt("last_dismissed_version", 0)
         set(v) = prefs.edit().putInt("last_dismissed_version", v).apply()
 
+    var lastSyncTime: Long
+        get() = prefs.getLong("last_sync_time", 0L)
+        set(v) = prefs.edit().putLong("last_sync_time", v).apply()
+
     var isVoiceBoost: Boolean
         get() = prefs.getBoolean("voice_boost", false)
         set(v) = prefs.edit().putBoolean("voice_boost", v).apply()

@@ -8,7 +8,10 @@ import com.example.bocciatv.data.local.db.CategoryEntity
 import com.example.bocciatv.data.local.db.StreamEntity
 import com.example.bocciatv.data.network.NetworkModule
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 class AppRepository(context: Context) {
 
@@ -16,21 +19,34 @@ class AppRepository(context: Context) {
     private val dao = db.contentDao()
     private val prefs = PrefsManager(context)
 
+    companion object {
+        private val syncMutex = Mutex()
+    }
+
     suspend fun syncContentIfNeeded(force: Boolean = false) = withContext(Dispatchers.IO) {
         val lastSync = prefs.lastSyncTime
         val now = System.currentTimeMillis()
         val twelveHoursMs = 12 * 3600 * 1000L
 
         if (force || (now - lastSync) > twelveHoursMs || lastSync == 0L) {
-            try {
-                Log.d("AppRepository", "Avvio sincronizzazione completa nel DB Room...")
-                syncType("get_live_categories", "get_live_streams")
-                syncType("get_vod_categories", "get_vod_streams")
-                syncType("get_series_categories", "get_series")
-                prefs.lastSyncTime = now
-                Log.d("AppRepository", "Sincronizzazione Room completata con successo!")
-            } catch (e: Exception) {
-                Log.e("AppRepository", "Errore durante sincronizzazione Room: ${e.message}")
+            if (syncMutex.isLocked) {
+                Log.d("AppRepository", "Sincronizzazione già in corso, salto...")
+                return@withContext
+            }
+
+            syncMutex.withLock {
+                try {
+                    Log.d("AppRepository", "Avvio sincronizzazione completa nel DB Room...")
+                    syncType("get_live_categories", "get_live_streams")
+                    syncType("get_vod_categories", "get_vod_streams")
+                    syncType("get_series_categories", "get_series")
+                    
+                    // Update lastSyncTime ONLY if all 3 completed successfully
+                    prefs.lastSyncTime = System.currentTimeMillis()
+                    Log.d("AppRepository", "Sincronizzazione Room completata con successo!")
+                } catch (e: Exception) {
+                    Log.e("AppRepository", "Errore durante sincronizzazione Room: ${e.message}")
+                }
             }
         }
     }
@@ -38,21 +54,29 @@ class AppRepository(context: Context) {
     private suspend fun syncType(catAction: String, streamAction: String) = withContext(Dispatchers.IO) {
         val user = prefs.user
         val pass = prefs.pass
-        if (user.isEmpty() || pass.isEmpty()) return@withContext
+        if (user.isEmpty() || pass.isEmpty()) {
+            throw IllegalStateException("Credenziali utente non trovate")
+        }
 
         val catResponse = NetworkModule.api.getCategories(user, pass, catAction).execute()
-        val categories = catResponse.body() ?: emptyList()
+        if (!catResponse.isSuccessful || catResponse.body() == null) {
+            throw IOException("Errore scaricamento categorie per $catAction: ${catResponse.code()}")
+        }
+        val categories = catResponse.body()!!
         val catEntities = categories.map {
             CategoryEntity(
                 dbId = "${catAction}_${it.id}",
-                id = it.id,
+                id = it.id ?: "",
                 name = it.name,
                 type = catAction
             )
         }
 
         val streamResponse = NetworkModule.api.getStreams(user, pass, streamAction, null).execute()
-        val streams = streamResponse.body() ?: emptyList()
+        if (!streamResponse.isSuccessful || streamResponse.body() == null) {
+            throw IOException("Errore scaricamento flussi per $streamAction: ${streamResponse.code()}")
+        }
+        val streams = streamResponse.body()!!
         val streamEntities = streams.map {
             val streamIdStr = it.streamId?.toString() ?: it.seriesId?.toString() ?: it.name ?: ""
             StreamEntity(
@@ -84,7 +108,12 @@ class AppRepository(context: Context) {
     }
 
     suspend fun getStreamsByIds(type: String, ids: List<String>) = withContext(Dispatchers.IO) {
-        dao.getStreamsByIds(type, ids)
+        if (ids.isEmpty()) return@withContext emptyList<StreamEntity>()
+        val result = mutableListOf<StreamEntity>()
+        for (chunk in ids.chunked(900)) {
+            result.addAll(dao.getStreamsByIds(type, chunk))
+        }
+        result
     }
 
     suspend fun getAllStreamsForType(type: String) = withContext(Dispatchers.IO) {

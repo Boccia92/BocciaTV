@@ -55,6 +55,10 @@ class ContentActivity : FragmentActivity() {
 
         private val categoryMapCache = mutableMapOf<String, MutableMap<String, List<StreamItem>>>()
 
+        fun clearCategoryMapCache() {
+            categoryMapCache.clear()
+        }
+
         // Reusable thread-safe date formatters to prevent GC thrashing
         private val sdfDateTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ITALY)
         private val sdfTimeOnly = SimpleDateFormat("HH:mm", Locale.ITALY)
@@ -66,7 +70,6 @@ class ContentActivity : FragmentActivity() {
     private lateinit var catAdapter: GenericAdapter<Category>
     private lateinit var streamAdapter: GenericAdapter<StreamItem>
     
-    private var masterList = emptyList<StreamItem>()
     private var categoryStreamsMap = mutableMapOf<String, List<StreamItem>>()
     private var currentCatId: String? = CAT_FAVORITES
     private var currentSearch: String = ""
@@ -123,8 +126,7 @@ class ContentActivity : FragmentActivity() {
         cacheUserPrefs()
         if (shouldRefresh) {
             Log.d("SYNC_DEBUG", "Database locale azzerato")
-            categoryMapCache.clear()
-            masterList = emptyList()
+            clearCategoryMapCache()
             catAdapter.update(emptyList())
             streamAdapter.update(emptyList())
             loadCategories()
@@ -174,24 +176,17 @@ class ContentActivity : FragmentActivity() {
                 // Room DB Search
                 repository.searchStreams(type, search).map { it.toStreamItem() }.take(500)
             } else if (catId == CAT_FAVORITES) {
-                if (masterList.isEmpty()) {
-                    masterList = repository.getAllStreamsForType(type).map { it.toStreamItem() }
-                }
-                masterList.filter { 
-                    val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
-                    favoritesSet.contains(id)
-                }
+                val favIds = favoritesSet.toList()
+                repository.getStreamsByIds(type, favIds).map { it.toStreamItem() }
             } else if (catId == CAT_RECENT) {
                 val recentIds = prefs.getRecentList()
-                if (masterList.isEmpty()) {
-                    masterList = repository.getAllStreamsForType(type).map { it.toStreamItem() }
-                }
-                val masterMap = masterList.associateBy { it.streamId?.toString() ?: it.seriesId?.toString() ?: "" }
-                recentIds.mapNotNull { id -> masterMap[id] }
+                val entities = repository.getStreamsByIds(type, recentIds)
+                val entityMap = entities.associateBy { it.streamId ?: it.seriesId ?: "" }
+                recentIds.mapNotNull { id -> entityMap[id]?.toStreamItem() }
             } else if (catId != null) {
                 categoryStreamsMap[catId] ?: repository.getStreamsByCategory(type, catId).map { it.toStreamItem() }
             } else {
-                masterList
+                emptyList()
             }
 
             if (!isActive) return@launch
@@ -219,14 +214,10 @@ class ContentActivity : FragmentActivity() {
 
         if (catId == CAT_FAVORITES) {
             lifecycleScope.launch {
-                if (masterList.isEmpty()) {
-                    masterList = repository.getAllStreamsForType(type).map { it.toStreamItem() }
-                }
-                val filtered = masterList.filter { 
-                    val id = it.streamId?.toString() ?: it.seriesId?.toString() ?: ""
-                    favoritesSet.contains(id)
-                }
-                displayStreams(filtered, focusStreams)
+                val favIds = favoritesSet.toList()
+                val entities = repository.getStreamsByIds(type, favIds)
+                val items = entities.map { it.toStreamItem() }
+                displayStreams(items, focusStreams)
             }
             return
         }
@@ -234,12 +225,10 @@ class ContentActivity : FragmentActivity() {
         if (catId == CAT_RECENT) {
             lifecycleScope.launch {
                 val recentIds = prefs.getRecentList()
-                if (masterList.isEmpty()) {
-                    masterList = repository.getAllStreamsForType(type).map { it.toStreamItem() }
-                }
-                val masterMap = masterList.associateBy { it.streamId?.toString() ?: it.seriesId?.toString() ?: "" }
-                val filtered = recentIds.mapNotNull { id -> masterMap[id] }
-                displayStreams(filtered, focusStreams)
+                val entities = repository.getStreamsByIds(type, recentIds)
+                val entityMap = entities.associateBy { it.streamId ?: it.seriesId ?: "" }
+                val items = recentIds.mapNotNull { id -> entityMap[id]?.toStreamItem() }
+                displayStreams(items, focusStreams)
             }
             return
         }
@@ -535,6 +524,7 @@ class ContentActivity : FragmentActivity() {
                     .setMessage("Vuoi rimuovere questo elemento da 'Continua a Guardare'?")
                     .setPositiveButton("Rimuovi") { _, _ ->
                         prefs.removeFromRecent(id)
+                        cacheUserPrefs()
                         applyFilters()
                         Toast.makeText(this, "Rimosso", Toast.LENGTH_SHORT).show()
                     }
@@ -587,10 +577,10 @@ class ContentActivity : FragmentActivity() {
 
             catAdapter.update(finalCats)
             if (finalCats.isNotEmpty()) {
-                loadStreamsForCategory(finalCats[0].id)
+                loadStreamsForCategory(finalCats[0].id ?: "")
             }
 
-            // Background sync from Room DB or network
+            // Sync from network if needed or first launch
             loadAllContentSilent()
         }
     }
@@ -598,15 +588,15 @@ class ContentActivity : FragmentActivity() {
     private fun loadAllContentSilent() {
         lifecycleScope.launch {
             repository.syncContentIfNeeded()
-            val entities = repository.getAllStreamsForType(type)
-            masterList = entities.map { it.toStreamItem() }
-
-            withContext(Dispatchers.Default) {
-                val grouped = masterList.groupBy { it.categoryId ?: "" }.toMutableMap()
+            val dbCats = repository.getCategories(type)
+            if (dbCats.isNotEmpty()) {
+                val cats = dbCats.map { it.toCategory() }
+                val finalCats = mutableListOf<Category>()
+                finalCats.add(Category(CAT_FAVORITES, "⭐ PREFERITI"))
+                finalCats.add(Category(CAT_RECENT, "🕒 CONTINUA A GUARDARE"))
+                finalCats.addAll(cats)
                 withContext(Dispatchers.Main) {
-                    grouped.forEach { (catId, items) ->
-                        categoryStreamsMap.putIfAbsent(catId, items)
-                    }
+                    catAdapter.update(finalCats)
                 }
             }
         }
