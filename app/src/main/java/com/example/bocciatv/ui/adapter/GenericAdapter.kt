@@ -101,7 +101,10 @@ class GenericAdapter<T> : RecyclerView.Adapter<GenericAdapter.ViewHolder> {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
-        return ViewHolder(view)
+        val holder = ViewHolder(view)
+        // I listener si creano UNA volta sola per scheda, non a ogni scorrimento
+        setupListeners(holder)
+        return holder
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -111,7 +114,9 @@ class GenericAdapter<T> : RecyclerView.Adapter<GenericAdapter.ViewHolder> {
         } else {
             bindView?.invoke(holder.itemView, item)
         }
-        
+    }
+
+    private fun setupListeners(holder: ViewHolder) {
         holder.itemView.setOnClickListener {
             val pos = holder.bindingAdapterPosition
             if (pos != RecyclerView.NO_POSITION) {

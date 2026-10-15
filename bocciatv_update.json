@@ -1,6 +1,6 @@
 {
-  "versionCode": 438,
-  "versionName": "20.2",
+  "versionCode": 439,
+  "versionName": "20.3",
   "apkUrl": "https://raw.githubusercontent.com/Boccia92/BocciaTV/main/bocciatv.apk",
-  "releaseNotes": "- Categorie e film nello stesso ordine del server.\n- Video più stabile: riprova fino a 10 volte se la connessione cade.\n- Buffer più grande per evitare scatti e blocchi."
+  "releaseNotes": "- Lista film più fluida: scorri senza che l'app si blocchi.\n- Categorie e film nello stesso ordine del server.\n- Video più stabile con riprova automatica."
 }

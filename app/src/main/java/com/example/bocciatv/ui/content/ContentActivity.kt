@@ -241,8 +241,10 @@ class ContentActivity : FragmentActivity() {
         pbLoading?.visibility = View.VISIBLE
 
         lifecycleScope.launch {
-            val entities = repository.getStreamsByCategory(type, catId)
-            val items = entities.map { it.toStreamItem() }
+            // Con migliaia di film la conversione non deve girare sul thread dello schermo
+            val items = withContext(Dispatchers.Default) {
+                repository.getStreamsByCategory(type, catId).map { it.toStreamItem() }
+            }
             categoryStreamsMap[catId] = items
             pbLoading?.visibility = View.GONE
             displayStreams(items, focusStreams)
@@ -337,6 +339,20 @@ class ContentActivity : FragmentActivity() {
         rvStreams.itemAnimator = null // Disable default animations
         rvStreams.recycledViewPool.setMaxRecycledViews(0, 40) // Pre-allocate recycled view pool
 
+        // Mentre la lista scorre (anche tenendo premuta la freccia) le immagini si fermano
+        // e ripartono quando ci si ferma: lo scorrimento resta fluido e non si impalla.
+        rvStreams.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                try {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        Glide.with(this@ContentActivity).resumeRequests()
+                    } else {
+                        Glide.with(this@ContentActivity).pauseRequests()
+                    }
+                } catch (_: Exception) {}
+            }
+        })
+
         // Pre-calculate target dimensions once outside the bind lambda
         val density = resources.displayMetrics.density
         val targetW = (145 * density).toInt()
@@ -346,9 +362,7 @@ class ContentActivity : FragmentActivity() {
             holder.findViewById<TextView>(R.id.tv_name).text = item.name
             val img = holder.findViewById<ImageView>(R.id.iv_thumb)
 
-            // Clear pending Glide requests on recycled view
-            Glide.with(this).clear(img)
-
+            // (Glide annulla da solo la richiesta precedente su questa vista)
             val iconUrl = item.icon ?: item.cover
             if (!iconUrl.isNullOrEmpty()) {
                 Glide.with(this)
