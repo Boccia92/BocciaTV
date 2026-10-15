@@ -9,10 +9,12 @@ import androidx.room.Transaction
 @Dao
 interface ContentDao {
 
-    @Query("SELECT * FROM categories WHERE type = :type")
+    // ORDER BY rowid = ordine di arrivo dal server (lo stesso di Latteax).
+    // Senza questo, SQLite usa l'indice e ordina i numeri come testo ("1","10","100","2").
+    @Query("SELECT * FROM categories WHERE type = :type ORDER BY rowid")
     suspend fun getCategories(type: String): List<CategoryEntity>
 
-    @Query("SELECT * FROM streams WHERE type = :type AND categoryId = :categoryId")
+    @Query("SELECT * FROM streams WHERE type = :type AND categoryId = :categoryId ORDER BY rowid")
     suspend fun getStreamsByCategory(type: String, categoryId: String): List<StreamEntity>
 
     @Query("SELECT * FROM streams WHERE type = :type AND name LIKE '%' || :query || '%' LIMIT 500")
@@ -21,7 +23,7 @@ interface ContentDao {
     @Query("SELECT * FROM streams WHERE type = :type AND (streamId IN (:ids) OR seriesId IN (:ids))")
     suspend fun getStreamsByIds(type: String, ids: List<String>): List<StreamEntity>
 
-    @Query("SELECT * FROM streams WHERE type = :type")
+    @Query("SELECT * FROM streams WHERE type = :type ORDER BY rowid")
     suspend fun getAllStreamsForType(type: String): List<StreamEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
