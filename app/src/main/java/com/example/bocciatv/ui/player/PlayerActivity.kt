@@ -27,8 +27,12 @@ import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -71,6 +75,7 @@ class PlayerActivity : FragmentActivity() {
     private var nextProgramEventId: String? = null
 
     private var retryCount = 0
+    private val MAX_RETRIES = 10
     private val retryHandler = Handler(Looper.getMainLooper())
 
     private val handler = Handler(Looper.getMainLooper())
@@ -205,10 +210,26 @@ class PlayerActivity : FragmentActivity() {
         val extractorsFactory = DefaultExtractorsFactory()
             .setConstantBitrateSeekingEnabled(true)
             
-        val mediaSourceFactory = DefaultMediaSourceFactory(this, extractorsFactory)
+        // Rete più paziente: timeout lunghi, redirect http<->https permessi
+        val httpFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent("IPTVSmartersPro/3.0.0 (Linux; Android TV)")
+            .setConnectTimeoutMs(15000)
+            .setReadTimeoutMs(20000)
+            .setAllowCrossProtocolRedirects(true)
+
+        val mediaSourceFactory = DefaultMediaSourceFactory(
+            DefaultDataSource.Factory(this, httpFactory),
+            extractorsFactory
+        ).setLoadErrorHandlingPolicy(DefaultLoadErrorHandlingPolicy(10))
+
+        // Buffer più grande: min 15s, max 50s, parte dopo 2,5s, dopo uno scatto aspetta 5s
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(15000, 50000, 2500, 5000)
+            .build()
 
         player = ExoPlayer.Builder(this, renderersFactory)
             .setMediaSourceFactory(mediaSourceFactory)
+            .setLoadControl(loadControl)
             .build().also {
             playerView.player = it
 
@@ -260,12 +281,21 @@ class PlayerActivity : FragmentActivity() {
                 override fun onPlayerError(error: PlaybackException) {
                     Log.e("BocciaTV", "Playback Error: ${error.message}", error)
                     retryCount++
-                    if (retryCount <= 3) {
-                        Toast.makeText(this@PlayerActivity, "Errore riproduzione, tentativo $retryCount/3...", Toast.LENGTH_SHORT).show()
+                    if (retryCount <= MAX_RETRIES) {
+                        // Pausa crescente: 2s, 4s, 6s ... fino a 10s
+                        val delayMs = (retryCount * 2000L).coerceAtMost(10000L)
+                        Toast.makeText(this@PlayerActivity, "Connessione instabile, riprovo ($retryCount/$MAX_RETRIES)...", Toast.LENGTH_SHORT).show()
+                        retryHandler.removeCallbacksAndMessages(null)
                         retryHandler.postDelayed({
-                            player?.prepare()
-                            player?.playWhenReady = true
-                        }, 2000)
+                            player?.let { p ->
+                                // Live scaduto o fuori finestra: riparte dal punto live
+                                if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
+                                    p.seekToDefaultPosition()
+                                }
+                                p.prepare()
+                                p.playWhenReady = true
+                            }
+                        }, delayMs)
                     } else {
                         Toast.makeText(this@PlayerActivity, "Impossibile riprodurre questo contenuto", Toast.LENGTH_LONG).show()
                         finish()

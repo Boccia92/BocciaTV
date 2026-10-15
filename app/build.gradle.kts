@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
     id("com.google.devtools.ksp")
 }
@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.bocciatv"
         minSdk = 23
         targetSdk = 37
-        versionCode = 436
-        versionName = "20.0"
+        versionCode = 437
+        versionName = "20.1"
     }
 
     buildTypes {
